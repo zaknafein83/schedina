@@ -8,3 +8,11 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
+/compiler.xml
+/copilot.data.migration.ask2agent.xml
+/dataSources.xml
+/encodings.xml
+/jarRepositories.xml
+/material_theme_project_new.xml
+/misc.xml
+/vcs.xml
