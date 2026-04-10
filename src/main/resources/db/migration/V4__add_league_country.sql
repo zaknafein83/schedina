@@ -1,0 +1,1 @@
+ALTER TABLE leagues ADD COLUMN country VARCHAR(100);

@@ -1,0 +1,35 @@
+services:
+
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       schedina
+      POSTGRES_USER:     schedina
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-schedina}
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # <-- persistenza DB
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U schedina -d schedina"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL:      jdbc:postgresql://db:5432/schedina
+      DB_USER:     schedina
+      DB_PASSWORD: ${DB_PASSWORD:-schedina}
+      JWT_SECRET:  ${JWT_SECRET:-cambia-questo-segreto-in-produzione-32ch}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:   # volume nominato → i dati sopravvivono ai restart
