@@ -20,6 +20,7 @@ import java.util.Set;
 @Consumes(MediaType.APPLICATION_JSON)
 public class AdminMatchResource {
 
+    // kept for legacy validation (e.g. import)
     private static final Set<String> VALID_RESULTS = Set.of("1", "X", "2");
 
     @Inject AuthService auth;
@@ -108,15 +109,21 @@ public class AdminMatchResource {
             @PathParam("id") Long id,
             @Valid MatchDto.MatchResultRequest req) {
         auth.requireAdmin(token);
-        if (!VALID_RESULTS.contains(req.officialResult())) {
-            return Response.status(400).entity(Map.of("error", "Risultato non valido. Valori ammessi: 1, X, 2")).build();
+        if (req.homeScore() < 0 || req.awayScore() < 0) {
+            return Response.status(400)
+                    .entity(Map.of("error", "I punteggi non possono essere negativi"))
+                    .build();
         }
         Match m = Match.findById(id);
         if (m == null) throw new NotFoundException();
         if (m.status == Match.Status.VALIDATED) {
-            return Response.status(400).entity(Map.of("error", "Risultato già validato, non modificabile")).build();
+            return Response.status(400)
+                    .entity(Map.of("error", "Risultato già validato, non modificabile"))
+                    .build();
         }
-        m.officialResult = req.officialResult();
+        m.homeScore = req.homeScore();
+        m.awayScore = req.awayScore();
+        m.officialResult = m.computeResult();   // auto-calcola 1 / X / 2
         m.status = Match.Status.RESULT_ENTERED;
         m.persist();
         return Response.ok(enrich(m)).build();

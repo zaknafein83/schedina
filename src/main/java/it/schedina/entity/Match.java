@@ -49,9 +49,28 @@ public class Match extends PanacheEntityBase {
     @Column(nullable = false, length = 20)
     public Status status = Status.DRAFT;
 
-    /** Stored as "1", "X", "2" */
+    /** Punteggio squadra di casa */
+    @Column(name = "home_score")
+    public Integer homeScore;
+
+    /** Punteggio squadra ospite */
+    @Column(name = "away_score")
+    public Integer awayScore;
+
+    /** Calcolato automaticamente: "1" (casa vince), "X" (pareggio), "2" (ospite vince) */
     @Column(name = "official_result", length = 5)
     public String officialResult;
+
+    /**
+     * Calcola e imposta officialResult a partire dai punteggi.
+     * Ritorna il valore calcolato.
+     */
+    public String computeResult() {
+        if (homeScore == null || awayScore == null) return null;
+        if (homeScore > awayScore) return "1";
+        if (homeScore.equals(awayScore)) return "X";
+        return "2";
+    }
 
     // --- Queries ---
 

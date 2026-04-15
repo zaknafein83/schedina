@@ -2,6 +2,8 @@ package it.schedina.dto;
 
 import it.schedina.entity.Coupon;
 import it.schedina.entity.CouponPrediction;
+import it.schedina.entity.Match;
+import it.schedina.entity.Team;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
@@ -24,10 +26,29 @@ public final class CouponDto {
     ) {}
 
     public record PredictionResponse(
-            Long id, Long matchId, List<String> choices, Boolean isCorrect
+            Long id, Long matchId,
+            String homeTeamName, String awayTeamName,
+            List<String> choices, Boolean isCorrect,
+            Integer homeScore, Integer awayScore, String officialResult
     ) {
         public static PredictionResponse from(CouponPrediction p) {
-            return new PredictionResponse(p.id, p.matchId, p.choices, p.isCorrect);
+            Match m = Match.findById(p.matchId);
+            String homeName = "?", awayName = "?";
+            Integer homeScore = null, awayScore = null;
+            String officialResult = null;
+            if (m != null) {
+                Team home = Team.findById(m.homeTeamId);
+                Team away = Team.findById(m.awayTeamId);
+                homeName       = home != null ? home.name : "?";
+                awayName       = away != null ? away.name : "?";
+                homeScore      = m.homeScore;
+                awayScore      = m.awayScore;
+                officialResult = m.officialResult;
+            }
+            return new PredictionResponse(p.id, p.matchId,
+                    homeName, awayName,
+                    p.choices, p.isCorrect,
+                    homeScore, awayScore, officialResult);
         }
     }
 

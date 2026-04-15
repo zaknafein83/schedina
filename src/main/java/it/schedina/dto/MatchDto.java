@@ -16,18 +16,26 @@ public final class MatchDto {
             @NotNull LocalDateTime scheduledAt
     ) {}
 
-    public record MatchResultRequest(@NotNull String officialResult) {}
+    /** Richiede il punteggio reale: 1/X/2 viene calcolato automaticamente */
+    public record MatchResultRequest(
+            @NotNull Integer homeScore,
+            @NotNull Integer awayScore
+    ) {}
 
     public record MatchResponse(
             Long id, Long homeTeamId, String homeTeamName,
             Long awayTeamId, String awayTeamName,
             Long leagueId, Long contestId,
-            LocalDateTime scheduledAt, Match.Status status, String officialResult
+            LocalDateTime scheduledAt, Match.Status status,
+            Integer homeScore, Integer awayScore,
+            String officialResult
     ) {
         public static MatchResponse from(Match m, String homeName, String awayName) {
             return new MatchResponse(m.id, m.homeTeamId, homeName,
                     m.awayTeamId, awayName, m.leagueId, m.contestId,
-                    m.scheduledAt, m.status, m.officialResult);
+                    m.scheduledAt, m.status,
+                    m.homeScore, m.awayScore,
+                    m.officialResult);
         }
     }
 }
