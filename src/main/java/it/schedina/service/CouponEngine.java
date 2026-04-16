@@ -13,7 +13,8 @@ import java.util.*;
 @ApplicationScoped
 public class CouponEngine {
 
-    private static final Set<String> VALID_CHOICES = Set.of("1", "X", "2");
+    private static final Set<String> VALID_1X2    = Set.of("1", "X", "2");
+    private static final Set<String> VALID_UO     = Set.of("U", "O");
 
     @Transactional
     public Coupon createCoupon(Long userId, CouponDto.CouponRequest req) {
@@ -47,7 +48,6 @@ public class CouponEngine {
             if (!matchIdSet.add(pred.matchId())) {
                 throw bad("Partita duplicata: " + pred.matchId());
             }
-            List<String> sorted = validateChoices(pred.choices());
             Match match = Match.findById(pred.matchId());
             if (match == null) throw bad("Partita non trovata: " + pred.matchId());
             if (!Objects.equals(match.contestId, req.contestId())) {
@@ -56,11 +56,18 @@ public class CouponEngine {
             if (match.status != Match.Status.OPEN && match.status != Match.Status.SCHEDULED) {
                 throw bad("La partita " + pred.matchId() + " non è disponibile per le giocate");
             }
+            validateChoicesForMatch(pred.choices(), match);
         }
 
-        // Count doubles and triples
-        long doubles = req.predictions().stream().filter(p -> p.choices().size() == 2).count();
-        long triples = req.predictions().stream().filter(p -> p.choices().size() == 3).count();
+        // Count doubles and triples (solo per partite 1X2)
+        long doubles = 0, triples = 0;
+        for (var pred : req.predictions()) {
+            Match match = Match.findById(pred.matchId());
+            if (match != null && match.betType == Match.BetType.RESULT_1X2) {
+                if (pred.choices().size() == 2) doubles++;
+                if (pred.choices().size() == 3) triples++;
+            }
+        }
         if (doubles > rule.maxDoubles) throw bad("Troppe doppie: " + doubles + " (max " + rule.maxDoubles + ")");
         if (triples > rule.maxTriples) throw bad("Troppe triple: " + triples + " (max " + rule.maxTriples + ")");
 
@@ -74,7 +81,8 @@ public class CouponEngine {
             CouponPrediction cp = new CouponPrediction();
             cp.couponId = coupon.id;
             cp.matchId = pred.matchId();
-            cp.choices = validateChoices(pred.choices());
+            Match m = Match.findById(pred.matchId());
+            cp.choices = validateChoicesForMatch(pred.choices(), m);
             cp.persist();
         }
 
@@ -161,11 +169,19 @@ public class CouponEngine {
         );
     }
 
-    private List<String> validateChoices(List<String> raw) {
+    private List<String> validateChoicesForMatch(List<String> raw, Match match) {
         if (raw == null || raw.isEmpty()) throw bad("Le scelte non possono essere vuote");
+        Set<String> valid = match.betType == Match.BetType.UNDER_OVER ? VALID_UO : VALID_1X2;
         List<String> sorted = raw.stream().distinct().sorted().toList();
         for (String c : sorted) {
-            if (!VALID_CHOICES.contains(c)) throw bad("Scelta non valida: " + c + ". Valori ammessi: 1, X, 2");
+            if (!valid.contains(c)) {
+                String allowed = match.betType == Match.BetType.UNDER_OVER ? "U, O" : "1, X, 2";
+                throw bad("Scelta non valida: " + c + ". Valori ammessi per questa partita: " + allowed);
+            }
+        }
+        // Under/Over: si sceglie solo U o O (no doppie)
+        if (match.betType == Match.BetType.UNDER_OVER && sorted.size() > 1) {
+            throw bad("Per Under/Over è possibile selezionare una sola opzione (U o O)");
         }
         return sorted;
     }

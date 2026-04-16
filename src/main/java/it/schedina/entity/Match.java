@@ -26,6 +26,13 @@ public class Match extends PanacheEntityBase {
         }
     }
 
+    public enum BetType {
+        /** Pronostico classico 1 / X / 2 */
+        RESULT_1X2,
+        /** Under / Over con soglia (es. 3.5) */
+        UNDER_OVER
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
@@ -49,6 +56,15 @@ public class Match extends PanacheEntityBase {
     @Column(nullable = false, length = 20)
     public Status status = Status.DRAFT;
 
+    /** Tipo di scommessa per questa partita */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "bet_type", nullable = false, length = 20)
+    public BetType betType = BetType.RESULT_1X2;
+
+    /** Soglia Under/Over (es. 3.5). Usato solo se betType = UNDER_OVER. */
+    @Column(name = "over_under_line")
+    public Double overUnderLine;
+
     /** Punteggio squadra di casa */
     @Column(name = "home_score")
     public Integer homeScore;
@@ -57,16 +73,22 @@ public class Match extends PanacheEntityBase {
     @Column(name = "away_score")
     public Integer awayScore;
 
-    /** Calcolato automaticamente: "1" (casa vince), "X" (pareggio), "2" (ospite vince) */
+    /**
+     * Calcolato automaticamente:
+     *  - RESULT_1X2:  "1" / "X" / "2"
+     *  - UNDER_OVER:  "U" se goal totali ≤ soglia, "O" altrimenti
+     */
     @Column(name = "official_result", length = 5)
     public String officialResult;
 
-    /**
-     * Calcola e imposta officialResult a partire dai punteggi.
-     * Ritorna il valore calcolato.
-     */
     public String computeResult() {
         if (homeScore == null || awayScore == null) return null;
+        if (betType == BetType.UNDER_OVER) {
+            double line = overUnderLine != null ? overUnderLine : 3.5;
+            int total = homeScore + awayScore;
+            return total > line ? "O" : "U";
+        }
+        // RESULT_1X2
         if (homeScore > awayScore) return "1";
         if (homeScore.equals(awayScore)) return "X";
         return "2";

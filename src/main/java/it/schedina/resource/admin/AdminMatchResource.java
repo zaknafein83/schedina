@@ -69,6 +69,8 @@ public class AdminMatchResource {
         m.leagueId = home.leagueId;
         m.contestId = req.contestId();
         m.scheduledAt = req.scheduledAt();
+        if (req.betType() != null) m.betType = req.betType();
+        if (req.overUnderLine() != null) m.overUnderLine = req.overUnderLine();
         m.persist();
         return Response.status(201).entity(enrich(m)).build();
     }
@@ -97,6 +99,8 @@ public class AdminMatchResource {
         if (req.awayTeamId() != null) m.awayTeamId = req.awayTeamId();
         if (req.contestId() != null) m.contestId = req.contestId();
         if (req.scheduledAt() != null) m.scheduledAt = req.scheduledAt();
+        if (req.betType() != null) m.betType = req.betType();
+        if (req.overUnderLine() != null) m.overUnderLine = req.overUnderLine();
         m.persist();
         return enrich(m);
     }
