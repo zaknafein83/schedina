@@ -100,11 +100,15 @@ public class CouponEngine {
     public Map<String, Object> processContest(Long contestId) {
         Contest contest = Contest.findById(contestId);
         if (contest == null) throw bad("Concorso non trovato");
-        if (contest.status != Contest.Status.CLOSED && contest.status != Contest.Status.PROCESSING) {
+
+        boolean isReprocess = contest.status == Contest.Status.PROCESSED;
+        if (!isReprocess
+                && contest.status != Contest.Status.CLOSED
+                && contest.status != Contest.Status.PROCESSING) {
             throw bad("Il concorso deve essere chiuso prima dell'elaborazione");
         }
 
-        // Check all matches have a result
+        // Verifica che tutte le partite abbiano un risultato
         List<Match> matches = Match.findByContest(contestId);
         List<Long> unresolved = matches.stream()
                 .filter(m -> m.officialResult == null)
@@ -121,7 +125,13 @@ public class CouponEngine {
         Map<Long, String> resultMap = new HashMap<>();
         for (Match m : matches) resultMap.put(m.id, m.officialResult);
 
-        List<Coupon> coupons = Coupon.findConfirmedByContest(contestId);
+        // In caso di ricalcolo, recupera ANCHE le schedine già elaborate (WINNING/NOT_WINNING)
+        List<Coupon> coupons = isReprocess
+                ? Coupon.<Coupon>find("contestId = ?1 and status in ?2", contestId,
+                        List.of(Coupon.Status.CONFIRMED, Coupon.Status.PENDING_RESULT,
+                                Coupon.Status.WINNING, Coupon.Status.NOT_WINNING)).list()
+                : Coupon.findConfirmedByContest(contestId);
+
         int winners = 0;
 
         for (Coupon coupon : coupons) {
@@ -143,10 +153,11 @@ public class CouponEngine {
         contest.status = Contest.Status.PROCESSED;
         contest.persist();
 
-        return Map.of(
-                "contestId", contestId,
-                "couponsProcessed", coupons.size(),
-                "winners", winners
+        return Map.ofEntries(
+                Map.entry("contestId", contestId),
+                Map.entry("couponsProcessed", coupons.size()),
+                Map.entry("winners", winners),
+                Map.entry("reprocessed", isReprocess)
         );
     }
 

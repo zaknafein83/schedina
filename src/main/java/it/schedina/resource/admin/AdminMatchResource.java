@@ -39,7 +39,7 @@ public class AdminMatchResource {
             @HeaderParam("Authorization") String token,
             @QueryParam("contestId") Long contestId,
             @QueryParam("leagueId") Long leagueId) {
-        auth.requireAdmin(token);
+        auth.requireAdminOrMod(token);
         var all = contestId != null
                 ? Match.findByContest(contestId)
                 : Match.<Match>listAll();
@@ -77,7 +77,7 @@ public class AdminMatchResource {
     @Path("/{id}")
     @Transactional
     public MatchDto.MatchResponse get(@HeaderParam("Authorization") String token, @PathParam("id") Long id) {
-        auth.requireAdmin(token);
+        auth.requireAdminOrMod(token);
         Match m = Match.findById(id);
         if (m == null) throw new NotFoundException();
         return enrich(m);
@@ -108,7 +108,7 @@ public class AdminMatchResource {
             @HeaderParam("Authorization") String token,
             @PathParam("id") Long id,
             @Valid MatchDto.MatchResultRequest req) {
-        auth.requireAdmin(token);
+        auth.requireAdminOrMod(token);
         if (req.homeScore() < 0 || req.awayScore() < 0) {
             return Response.status(400)
                     .entity(Map.of("error", "I punteggi non possono essere negativi"))
@@ -133,7 +133,7 @@ public class AdminMatchResource {
     @Path("/{id}/validate")
     @Transactional
     public Response validate(@HeaderParam("Authorization") String token, @PathParam("id") Long id) {
-        auth.requireAdmin(token);
+        auth.requireAdminOrMod(token);
         Match m = Match.findById(id);
         if (m == null) throw new NotFoundException();
         if (m.officialResult == null) {

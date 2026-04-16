@@ -33,7 +33,7 @@ public class AdminContestResource {
     @GET
     @Transactional
     public List<ContestDto.ContestResponse> list(@HeaderParam("Authorization") String token) {
-        auth.requireAdmin(token);
+        auth.requireAdminOrMod(token);
         return Contest.<Contest>listAll().stream().map(this::withCounts).toList();
     }
 
@@ -65,7 +65,7 @@ public class AdminContestResource {
     @Path("/{id}")
     @Transactional
     public ContestDto.ContestResponse get(@HeaderParam("Authorization") String token, @PathParam("id") Long id) {
-        auth.requireAdmin(token);
+        auth.requireAdminOrMod(token);
         Contest c = Contest.findById(id);
         if (c == null) throw new NotFoundException();
         return withCounts(c);
@@ -112,7 +112,7 @@ public class AdminContestResource {
     @Path("/{id}/close")
     @Transactional
     public Response close(@HeaderParam("Authorization") String token, @PathParam("id") Long id) {
-        auth.requireAdmin(token);
+        auth.requireAdminOrMod(token);
         Contest c = Contest.findById(id);
         if (c == null) throw new NotFoundException();
         if (c.status != Contest.Status.OPEN) {
@@ -126,7 +126,7 @@ public class AdminContestResource {
     @POST
     @Path("/{id}/process")
     public Response process(@HeaderParam("Authorization") String token, @PathParam("id") Long id) {
-        auth.requireAdmin(token);
+        auth.requireAdminOrMod(token);
         Map<String, Object> result = couponEngine.processContest(id);
         Map<String, Integer> notifications = notificationService.sendContestNotifications(id);
         return Response.ok(Map.of("processing", result, "notifications", notifications)).build();

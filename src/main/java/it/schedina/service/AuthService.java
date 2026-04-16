@@ -54,6 +54,16 @@ public class AuthService {
         return user;
     }
 
+    /** Like requireAuth but accepts both ADMIN and MOD roles. */
+    public User requireAdminOrMod(String authHeader) {
+        User user = requireAuth(authHeader);
+        if (user.role != User.Role.ADMIN && user.role != User.Role.MOD) {
+            throw new WebApplicationException(
+                    Response.status(403).entity(Map.of("error", "Admin or Mod access required")).build());
+        }
+        return user;
+    }
+
     private WebApplicationException unauthorized(String message) {
         return new WebApplicationException(
                 Response.status(401).entity(Map.of("error", message)).build());
