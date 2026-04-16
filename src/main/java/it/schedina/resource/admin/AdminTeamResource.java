@@ -2,8 +2,10 @@ package it.schedina.resource.admin;
 
 import it.schedina.dto.TeamDto;
 import it.schedina.entity.League;
+import it.schedina.entity.Match;
 import it.schedina.entity.Team;
 import it.schedina.service.AuthService;
+import java.util.Map;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -87,6 +89,12 @@ public class AdminTeamResource {
         auth.requireAdmin(token);
         Team t = Team.findById(id);
         if (t == null) throw new NotFoundException();
+        long matchCount = Match.count("homeTeamId = ?1 or awayTeamId = ?1", id);
+        if (matchCount > 0) {
+            return Response.status(409).entity(Map.of(
+                "error", "Impossibile eliminare: la squadra è usata in " + matchCount + " partite. Rimuovile prima."
+            )).build();
+        }
         t.delete();
         return Response.noContent().build();
     }

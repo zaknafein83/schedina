@@ -1,7 +1,7 @@
 package it.schedina.resource.admin;
 
 import it.schedina.dto.LeagueDto;
-import it.schedina.entity.League;
+import it.schedina.entity.*;
 import it.schedina.service.AuthService;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -75,7 +75,29 @@ public class AdminLeagueResource {
         auth.requireAdmin(token);
         League l = League.findById(id);
         if (l == null) throw new NotFoundException();
+
+        // 1. Elimina concorsi e relativi dati (partite, schedine, previsioni)
+        List<Contest> contests = Contest.<Contest>find("leagueId", id).list();
+        for (Contest c : contests) {
+            List<Match> matches = Match.findByContest(c.id);
+            for (Match m : matches) m.delete();
+            List<Coupon> coupons = Coupon.<Coupon>find("contestId", c.id).list();
+            for (Coupon coupon : coupons) {
+                CouponPrediction.delete("couponId", coupon.id);
+                coupon.delete();
+            }
+            c.delete();
+        }
+
+        // 2. Elimina le squadre collegate
+        Team.delete("leagueId", id);
+
+        // 3. Elimina le regole collegate
+        Rule.delete("leagueId", id);
+
+        // 4. Elimina la lega
         l.delete();
+
         return Response.noContent().build();
     }
 }

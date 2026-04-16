@@ -142,6 +142,12 @@ public class AdminContestResource {
         if (c.status != Contest.Status.DRAFT && c.status != Contest.Status.CANCELLED) {
             return Response.status(400).entity(Map.of("error", "Solo i concorsi in bozza o annullati possono essere eliminati")).build();
         }
+        long matchCount = Match.count("contestId", id);
+        if (matchCount > 0) {
+            return Response.status(409).entity(Map.of(
+                "error", "Impossibile eliminare: il concorso contiene " + matchCount + " partite. Rimuovile prima."
+            )).build();
+        }
         c.delete();
         return Response.noContent().build();
     }
