@@ -15,7 +15,8 @@ BEGIN
     -- Prende la prima (e unica) lega
     SELECT id INTO v_league_id FROM leagues ORDER BY id LIMIT 1;
     IF v_league_id IS NULL THEN
-        RAISE EXCEPTION 'Nessuna lega trovata nel database';
+        RAISE NOTICE 'V10 skip: nessuna lega presente, seed concorso non eseguito';
+        RETURN;
     END IF;
 
     -- Squadre attive della lega in ordine casuale
@@ -29,7 +30,8 @@ BEGIN
     v_n_matches := LEAST(v_n_teams / 2, 13);
 
     IF v_n_matches < 1 THEN
-        RAISE EXCEPTION 'Squadre insufficienti (trovate: %). Aggiungine almeno 2.', v_n_teams;
+        RAISE NOTICE 'V10 skip: squadre insufficienti (trovate: %), seed concorso non eseguito', v_n_teams;
+        RETURN;
     END IF;
 
     -- Cerca regola esistente compatibile (stessa lega, stesso numero partite)
