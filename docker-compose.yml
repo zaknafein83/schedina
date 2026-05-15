@@ -27,6 +27,7 @@ services:
       DB_USER:     schedina
       DB_PASSWORD: ${DB_PASSWORD:-schedina}
       JWT_SECRET:  ${JWT_SECRET:-cambia-questo-segreto-in-produzione-32ch}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
     depends_on:
       db:
         condition: service_healthy
