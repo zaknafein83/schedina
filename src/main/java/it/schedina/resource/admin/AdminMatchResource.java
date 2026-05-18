@@ -1,6 +1,7 @@
 package it.schedina.resource.admin;
 
 import it.schedina.dto.MatchDto;
+import it.schedina.entity.Contest;
 import it.schedina.entity.Match;
 import it.schedina.entity.Team;
 import it.schedina.service.AuthService;
@@ -62,6 +63,15 @@ public class AdminMatchResource {
         }
         if (!home.leagueId.equals(away.leagueId)) {
             return Response.status(400).entity(Map.of("error", "Le due squadre devono appartenere alla stessa lega")).build();
+        }
+        if (req.contestId() != null) {
+            Contest c = Contest.findById(req.contestId());
+            if (c != null && (c.status == Contest.Status.CLOSED
+                    || c.status == Contest.Status.PROCESSING
+                    || c.status == Contest.Status.PROCESSED)) {
+                return Response.status(400).entity(Map.of(
+                        "error", "Impossibile aggiungere partite a un concorso in stato " + c.status)).build();
+            }
         }
         Match m = new Match();
         m.homeTeamId = req.homeTeamId();
