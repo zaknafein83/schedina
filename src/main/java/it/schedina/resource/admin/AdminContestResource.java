@@ -105,6 +105,8 @@ public class AdminContestResource {
         }
         c.status = Contest.Status.OPEN;
         c.persist();
+        Match.update("status = ?1 where contestId = ?2 and status = ?3",
+                Match.Status.SCHEDULED, c.id, Match.Status.DRAFT);
         return Response.ok(withCounts(c)).build();
     }
 
