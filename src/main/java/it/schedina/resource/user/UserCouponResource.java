@@ -1,6 +1,7 @@
 package it.schedina.resource.user;
 
 import it.schedina.dto.CouponDto;
+import it.schedina.entity.Contest;
 import it.schedina.entity.Coupon;
 import it.schedina.entity.CouponPrediction;
 import it.schedina.entity.User;
@@ -13,6 +14,9 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +37,28 @@ public class UserCouponResource {
     public List<CouponDto.CouponSummary> myCoupons(@HeaderParam("Authorization") String token) {
         User user = auth.requireAuth(token);
         return Coupon.findByUser(user.id).stream().map(CouponDto.CouponSummary::from).toList();
+    }
+
+    /** Schedine dell'utente corrente raggruppate per concorso, ordinate dal più recente */
+    @GET
+    @Path("/by-contest")
+    @Transactional
+    public List<CouponDto.ContestCoupons> myCouponsByContest(@HeaderParam("Authorization") String token) {
+        User user = auth.requireAuth(token);
+        Map<Long, List<CouponDto.CouponSummary>> grouped = new HashMap<>();
+        for (Coupon c : Coupon.findByUser(user.id)) {
+            grouped.computeIfAbsent(c.contestId, k -> new ArrayList<>())
+                    .add(CouponDto.CouponSummary.from(c));
+        }
+        List<CouponDto.ContestCoupons> result = new ArrayList<>();
+        for (Map.Entry<Long, List<CouponDto.CouponSummary>> e : grouped.entrySet()) {
+            Contest contest = Contest.findById(e.getKey());
+            String name = contest != null ? contest.name : "(concorso #" + e.getKey() + ")";
+            String status = contest != null ? contest.status.name() : "UNKNOWN";
+            result.add(new CouponDto.ContestCoupons(e.getKey(), name, status, e.getValue().size(), e.getValue()));
+        }
+        result.sort(Comparator.comparing(CouponDto.ContestCoupons::contestId).reversed());
+        return result;
     }
 
     @POST

@@ -75,4 +75,17 @@ public final class CouponDto {
                     c.confirmedAt, c.status, c.correctCount, c.isWinner);
         }
     }
+
+    /** CouponSummary arricchito con info utente, per admin/mod */
+    public record AdminCouponSummary(
+            Long id, Long userId, String userName, String userEmail,
+            Long contestId, LocalDateTime createdAt, LocalDateTime confirmedAt,
+            Coupon.Status status, Integer correctCount, Boolean isWinner
+    ) {}
+
+    /** Una entry della pagina 'Schedine' raggruppata per concorso */
+    public record ContestCoupons(
+            Long contestId, String contestName, String contestStatus,
+            long couponCount, List<?> coupons
+    ) {}
 }
