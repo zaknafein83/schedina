@@ -86,7 +86,50 @@ public class CouponEngine {
             cp.persist();
         }
 
+        // Side predictions (opzionali)
+        if (req.sidePredictions() != null && !req.sidePredictions().isEmpty()) {
+            Set<Long> chosenMatchIds = matchIdSet;
+            Set<Long> seenSideIds = new HashSet<>();
+            for (var sp : req.sidePredictions()) {
+                if (!seenSideIds.add(sp.matchSidePredictionId())) {
+                    throw bad("Side prediction duplicato: " + sp.matchSidePredictionId());
+                }
+                MatchSidePrediction msp = MatchSidePrediction.findById(sp.matchSidePredictionId());
+                if (msp == null) throw bad("Side bet non trovato: " + sp.matchSidePredictionId());
+                if (!chosenMatchIds.contains(msp.matchId)) {
+                    throw bad("Il side bet " + sp.matchSidePredictionId()
+                            + " si riferisce a una partita non presente nella schedina");
+                }
+                validateSideChoice(msp, sp.choice());
+                CouponSidePrediction csp = new CouponSidePrediction();
+                csp.couponId = coupon.id;
+                csp.matchSidePredictionId = sp.matchSidePredictionId();
+                csp.choice = sp.choice();
+                csp.persist();
+            }
+        }
+
         return coupon;
+    }
+
+    private void validateSideChoice(MatchSidePrediction msp, String choice) {
+        if (choice == null || choice.isBlank()) throw bad("Scelta vuota per side bet " + msp.id);
+        if (msp.betType == MatchSidePrediction.BetType.GOAL_NOGOAL) {
+            String v = choice.toUpperCase();
+            if (!v.equals("GOAL") && !v.equals("NOGOAL")) {
+                throw bad("Side bet gol/no gol: ammessi solo GOAL o NOGOAL");
+            }
+        } else {
+            // FIRST_SCORER: deve essere un playerId esistente (o "NONE" per "nessun marcatore")
+            if (!"NONE".equalsIgnoreCase(choice)) {
+                try {
+                    Long pid = Long.parseLong(choice);
+                    if (Player.findById(pid) == null) throw bad("Giocatore non trovato: " + pid);
+                } catch (NumberFormatException e) {
+                    throw bad("choice non valida per primo marcatore: " + choice);
+                }
+            }
+        }
     }
 
     @Transactional
@@ -142,6 +185,16 @@ public class CouponEngine {
 
         int winners = 0;
 
+        // Mappa side bet official per id (solo quelli RESOLVED)
+        Map<Long, String> sideOfficialMap = new HashMap<>();
+        for (Match m : matches) {
+            for (MatchSidePrediction sp : MatchSidePrediction.findByMatch(m.id)) {
+                if (sp.status == MatchSidePrediction.Status.RESOLVED && sp.officialResult != null) {
+                    sideOfficialMap.put(sp.id, sp.officialResult);
+                }
+            }
+        }
+
         for (Coupon coupon : coupons) {
             List<CouponPrediction> preds = CouponPrediction.findByCoupon(coupon.id);
             int correct = 0;
@@ -150,6 +203,17 @@ public class CouponEngine {
                 pred.isCorrect = official != null && pred.choices.contains(official);
                 if (pred.isCorrect) correct++;
                 pred.persist();
+            }
+            // Side predictions: ognuna risolta vale +1 (peso uguale al risultato principale)
+            for (CouponSidePrediction csp : CouponSidePrediction.findByCoupon(coupon.id)) {
+                String official = sideOfficialMap.get(csp.matchSidePredictionId);
+                if (official == null) {
+                    csp.isCorrect = null;
+                } else {
+                    csp.isCorrect = official.equalsIgnoreCase(csp.choice);
+                    if (Boolean.TRUE.equals(csp.isCorrect)) correct++;
+                }
+                csp.persist();
             }
             coupon.correctCount = correct;
             coupon.isWinner = rule.winningThresholds.contains(correct);

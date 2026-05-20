@@ -2,7 +2,9 @@ package it.schedina.resource.admin;
 
 import it.schedina.dto.MatchDto;
 import it.schedina.entity.Contest;
+import it.schedina.dto.MatchSideBetDto;
 import it.schedina.entity.Match;
+import it.schedina.entity.MatchSidePrediction;
 import it.schedina.entity.Team;
 import it.schedina.service.AuthService;
 import jakarta.inject.Inject;
@@ -140,7 +142,103 @@ public class AdminMatchResource {
         m.officialResult = m.computeResult();   // auto-calcola 1 / X / 2
         m.status = Match.Status.RESULT_ENTERED;
         m.persist();
+        // Auto-risoluzione side bet GOAL_NOGOAL (calcolabile da homeScore/awayScore)
+        autoResolveGoalNogoal(m);
         return Response.ok(enrich(m)).build();
+    }
+
+    private void autoResolveGoalNogoal(Match m) {
+        if (m.homeScore == null || m.awayScore == null) return;
+        for (MatchSidePrediction sp : MatchSidePrediction.findByMatch(m.id)) {
+            if (sp.betType == MatchSidePrediction.BetType.GOAL_NOGOAL
+                    && sp.status == MatchSidePrediction.Status.PENDING) {
+                sp.officialResult = (m.homeScore > 0 && m.awayScore > 0) ? "GOAL" : "NOGOAL";
+                sp.status = MatchSidePrediction.Status.RESOLVED;
+                sp.resolvedAt = java.time.LocalDateTime.now();
+                sp.persist();
+            }
+        }
+    }
+
+    // ─── Side bet CRUD ──────────────────────────────────────────────────────
+
+    @GET
+    @Path("/{id}/side-bets")
+    @Transactional
+    public List<MatchSideBetDto.SideBetResponse> listSideBets(
+            @HeaderParam("Authorization") String token, @PathParam("id") Long id) {
+        auth.requireAdminOrMod(token);
+        Match m = Match.findById(id);
+        if (m == null) throw new NotFoundException();
+        return MatchSidePrediction.findByMatch(id).stream()
+                .map(MatchSideBetDto.SideBetResponse::from).toList();
+    }
+
+    @POST
+    @Path("/{id}/side-bets")
+    @Transactional
+    public Response createSideBet(
+            @HeaderParam("Authorization") String token,
+            @PathParam("id") Long id,
+            @Valid MatchSideBetDto.SideBetRequest req) {
+        auth.requireAdminOrMod(token);
+        Match m = Match.findById(id);
+        if (m == null) throw new NotFoundException();
+        MatchSidePrediction.BetType bt;
+        try { bt = MatchSidePrediction.BetType.valueOf(req.betType().toUpperCase()); }
+        catch (IllegalArgumentException e) {
+            return Response.status(400).entity(Map.of("error", "BetType non valido: " + req.betType())).build();
+        }
+        long dup = MatchSidePrediction.count("matchId = ?1 and betType = ?2", id, bt);
+        if (dup > 0) {
+            return Response.status(409).entity(Map.of("error", "Side bet già configurato per questa partita")).build();
+        }
+        MatchSidePrediction sp = new MatchSidePrediction();
+        sp.matchId = id;
+        sp.betType = bt;
+        sp.label = (req.label() != null && !req.label().isBlank())
+                ? req.label()
+                : (bt == MatchSidePrediction.BetType.GOAL_NOGOAL ? "Gol/No gol" : "Primo marcatore");
+        sp.persist();
+        return Response.status(201).entity(MatchSideBetDto.SideBetResponse.from(sp)).build();
+    }
+
+    @DELETE
+    @Path("/{id}/side-bets/{sid}")
+    @Transactional
+    public Response deleteSideBet(
+            @HeaderParam("Authorization") String token,
+            @PathParam("id") Long id, @PathParam("sid") Long sid) {
+        auth.requireAdminOrMod(token);
+        MatchSidePrediction sp = MatchSidePrediction.findById(sid);
+        if (sp == null || !sp.matchId.equals(id)) throw new NotFoundException();
+        sp.delete();
+        return Response.noContent().build();
+    }
+
+    @PATCH
+    @Path("/{id}/side-bets/{sid}/resolve")
+    @Transactional
+    public Response resolveSideBet(
+            @HeaderParam("Authorization") String token,
+            @PathParam("id") Long id, @PathParam("sid") Long sid,
+            @Valid MatchSideBetDto.ResolveRequest req) {
+        auth.requireAdminOrMod(token);
+        MatchSidePrediction sp = MatchSidePrediction.findById(sid);
+        if (sp == null || !sp.matchId.equals(id)) throw new NotFoundException();
+        if (sp.betType == MatchSidePrediction.BetType.GOAL_NOGOAL) {
+            String v = req.officialResult().toUpperCase();
+            if (!v.equals("GOAL") && !v.equals("NOGOAL")) {
+                return Response.status(400).entity(Map.of("error", "Valori ammessi: GOAL, NOGOAL")).build();
+            }
+            sp.officialResult = v;
+        } else {
+            sp.officialResult = req.officialResult();
+        }
+        sp.status = MatchSidePrediction.Status.RESOLVED;
+        sp.resolvedAt = java.time.LocalDateTime.now();
+        sp.persist();
+        return Response.ok(MatchSideBetDto.SideBetResponse.from(sp)).build();
     }
 
     @POST

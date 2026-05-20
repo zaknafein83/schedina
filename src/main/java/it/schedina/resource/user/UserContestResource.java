@@ -1,8 +1,10 @@
 package it.schedina.resource.user;
 
 import it.schedina.dto.MatchDto;
+import it.schedina.dto.MatchSideBetDto;
 import it.schedina.entity.Contest;
 import it.schedina.entity.Match;
+import it.schedina.entity.MatchSidePrediction;
 import it.schedina.entity.Rule;
 import it.schedina.entity.Team;
 import it.schedina.service.AuthService;
@@ -63,5 +65,17 @@ public class UserContestResource {
                     home != null ? home.name : "?",
                     away != null ? away.name : "?");
         }).toList();
+    }
+
+    /** Side bet configurati per una specifica partita (accessibili a qualsiasi utente loggato). */
+    @GET
+    @Path("/matches/{matchId}/side-bets")
+    @Transactional
+    public List<MatchSideBetDto.SideBetResponse> matchSideBets(
+            @HeaderParam("Authorization") String token,
+            @PathParam("matchId") Long matchId) {
+        auth.requireAuth(token);
+        return MatchSidePrediction.findByMatch(matchId).stream()
+                .map(MatchSideBetDto.SideBetResponse::from).toList();
     }
 }

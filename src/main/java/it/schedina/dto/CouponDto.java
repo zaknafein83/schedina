@@ -1,9 +1,6 @@
 package it.schedina.dto;
 
-import it.schedina.entity.Coupon;
-import it.schedina.entity.CouponPrediction;
-import it.schedina.entity.Match;
-import it.schedina.entity.Team;
+import it.schedina.entity.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
@@ -20,9 +17,16 @@ public final class CouponDto {
             @NotEmpty List<String> choices
     ) {}
 
+    public record SidePredictionRequest(
+            @NotNull Long matchSidePredictionId,
+            @NotNull String choice
+    ) {}
+
     public record CouponRequest(
             @NotNull Long contestId,
-            @NotEmpty List<PredictionRequest> predictions
+            @NotEmpty List<PredictionRequest> predictions,
+            /** Opzionale: pronostici extra per side bet (gol/no gol, primo marcatore) */
+            List<SidePredictionRequest> sidePredictions
     ) {}
 
     public record PredictionResponse(
@@ -52,16 +56,66 @@ public final class CouponDto {
         }
     }
 
+    public record SidePredictionResponse(
+            Long id,
+            Long matchSidePredictionId,
+            Long matchId,
+            String betType,
+            String betLabel,
+            String choice,
+            String choiceLabel,
+            Boolean isCorrect,
+            String officialResult,
+            String officialResultLabel,
+            String betStatus
+    ) {
+        public static SidePredictionResponse from(CouponSidePrediction csp) {
+            MatchSidePrediction msp = MatchSidePrediction.findById(csp.matchSidePredictionId);
+            String choiceLabel = labelFor(msp, csp.choice);
+            String officialLabel = msp != null && msp.officialResult != null ? labelFor(msp, msp.officialResult) : null;
+            return new SidePredictionResponse(
+                    csp.id,
+                    csp.matchSidePredictionId,
+                    msp != null ? msp.matchId : null,
+                    msp != null ? msp.betType.name() : null,
+                    msp != null ? msp.label : null,
+                    csp.choice,
+                    choiceLabel,
+                    csp.isCorrect,
+                    msp != null ? msp.officialResult : null,
+                    officialLabel,
+                    msp != null ? msp.status.name() : null
+            );
+        }
+
+        private static String labelFor(MatchSidePrediction msp, String ref) {
+            if (msp == null || ref == null) return ref;
+            if (msp.betType == MatchSidePrediction.BetType.GOAL_NOGOAL) return ref;
+            if ("NONE".equalsIgnoreCase(ref)) return "Nessuno";
+            try {
+                Long pid = Long.parseLong(ref);
+                Player p = Player.findById(pid);
+                return p != null ? p.fullName() : ref;
+            } catch (NumberFormatException e) {
+                return ref;
+            }
+        }
+    }
+
     public record CouponResponse(
             Long id, Long userId, Long contestId,
             LocalDateTime createdAt, LocalDateTime confirmedAt,
             Coupon.Status status, Integer correctCount, Boolean isWinner,
-            List<PredictionResponse> predictions
+            List<PredictionResponse> predictions,
+            List<SidePredictionResponse> sidePredictions
     ) {
         public static CouponResponse from(Coupon c, List<CouponPrediction> preds) {
+            List<SidePredictionResponse> sides = CouponSidePrediction.findByCoupon(c.id)
+                    .stream().map(SidePredictionResponse::from).toList();
             return new CouponResponse(c.id, c.userId, c.contestId,
                     c.createdAt, c.confirmedAt, c.status, c.correctCount, c.isWinner,
-                    preds.stream().map(PredictionResponse::from).toList());
+                    preds.stream().map(PredictionResponse::from).toList(),
+                    sides);
         }
     }
 
