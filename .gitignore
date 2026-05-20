@@ -273,3 +273,10 @@
 /target/classes/db/migration/V2__add_password_reset.sql
 /target/classes/db/migration/V3__seed_admin.sql
 /target/classes/db/migration/V4__add_league_country.sql
+
+# Build output
+/target/
+
+# Personali (config Claude e IDE)
+/.claude/
+/.idea/
