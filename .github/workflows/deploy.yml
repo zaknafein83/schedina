@@ -86,14 +86,16 @@ jobs:
             exit 1
           fi
           echo "Chiave SSH valida."
-          # ssh-keyscan è best-effort: se fallisce, useremo StrictHostKeyChecking=accept-new dopo
-          ssh-keyscan -T 15 -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || \
+          # ssh-keyscan è best-effort: se fallisce, useremo StrictHostKeyChecking=accept-new dopo.
+          # -4 forza IPv4: i runner GitHub Actions su Azure non hanno IPv6.
+          ssh-keyscan -4 -T 15 -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || \
             echo "::warning::ssh-keyscan in timeout; fallback su accept-new"
           echo "Righe in known_hosts: $(wc -l < ~/.ssh/known_hosts)"
 
       - name: Upload docker-compose.yml
         run: |
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+          # -4 forza IPv4 (i runner Actions su Azure non hanno IPv6)
+          scp -4 -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
               docker-compose.yml \
               ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/schedina/docker-compose.yml
 
@@ -101,7 +103,8 @@ jobs:
         env:
           TAG: ${{ needs.build-and-push.outputs.tag }}
         run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash <<EOF
+          ssh -4 -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+              ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash <<EOF
             set -euo pipefail
             cd /opt/schedina
             echo "TAG=${TAG}" > .deploy-tag
@@ -117,7 +120,8 @@ jobs:
         run: |
           echo "Aspetto che l'app risponda su /q/health/ready ..."
           for i in $(seq 1 20); do
-            if ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            if ssh -4 -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+                   ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
                  "curl -fsS --max-time 3 http://127.0.0.1:8080/q/health/ready > /dev/null"; then
               echo "✅ healthcheck OK al tentativo $i"
               exit 0
@@ -126,6 +130,7 @@ jobs:
             sleep 5
           done
           echo "::error::healthcheck non passato dopo 100s"
-          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+          ssh -4 -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+              ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
             "cd /opt/schedina && docker compose logs --tail=80 app" || true
           exit 1
