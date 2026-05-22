@@ -71,11 +71,25 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Prepare SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          # Usiamo printf per evitare l'interpretazione di $ o backslash nel contenuto
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          # Validazione: la chiave deve essere parsabile (senza passphrase)
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1; then
+            echo "::error::La chiave VPS_SSH_KEY non è parsabile (corrotta, ha passphrase, o formato sbagliato)."
+            echo "Numero righe nel file: $(wc -l < ~/.ssh/deploy_key)"
+            exit 1
+          fi
+          echo "Chiave SSH valida."
+          # ssh-keyscan è best-effort: se fallisce, useremo StrictHostKeyChecking=accept-new dopo
+          ssh-keyscan -T 15 -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || \
+            echo "::warning::ssh-keyscan in timeout; fallback su accept-new"
+          echo "Righe in known_hosts: $(wc -l < ~/.ssh/known_hosts)"
 
       - name: Upload docker-compose.yml
         run: |
