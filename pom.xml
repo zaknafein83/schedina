@@ -67,6 +67,11 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-validator</artifactId>
         </dependency>
+        <!-- Health endpoints: /q/health, /q/health/ready, /q/health/live -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-health</artifactId>
+        </dependency>
         <!-- BCrypt -->
         <dependency>
             <groupId>io.quarkus</groupId>
