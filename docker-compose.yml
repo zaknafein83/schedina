@@ -8,7 +8,7 @@ services:
       POSTGRES_USER:     schedina
       POSTGRES_PASSWORD: ${DB_PASSWORD:-schedina}
     volumes:
-      - pgdata:/var/lib/postgresql/data   # <-- persistenza DB
+      - pgdata:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:
@@ -18,19 +18,29 @@ services:
       retries: 10
 
   app:
+    # In prod l'immagine è quella pushata da GitHub Actions su GHCR.
+    # TAG viene impostato dal workflow di deploy (default: latest).
+    image: ghcr.io/zaknafein83/schedina:${TAG:-latest}
+    # In dev locale: `docker compose up --build` ignora l'image e ricostruisce da sorgenti.
     build: .
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
-      DB_URL:      jdbc:postgresql://db:5432/schedina
-      DB_USER:     schedina
-      DB_PASSWORD: ${DB_PASSWORD:-schedina}
-      JWT_SECRET:  ${JWT_SECRET:-cambia-questo-segreto-in-produzione-32ch}
+      DB_URL:       jdbc:postgresql://db:5432/schedina
+      DB_USER:      schedina
+      DB_PASSWORD:  ${DB_PASSWORD:-schedina}
+      JWT_SECRET:   ${JWT_SECRET:-cambia-questo-segreto-in-produzione-32ch}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/q/health/ready || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 40s
 
 volumes:
-  pgdata:   # volume nominato → i dati sopravvivono ai restart
+  pgdata:
