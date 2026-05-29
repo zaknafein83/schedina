@@ -1,10 +1,10 @@
 package it.schedina.resource.admin;
 
 import it.schedina.dto.SchedinaDto;
-import it.schedina.entity.BetOption;
+import it.schedina.entity.Match;
 import it.schedina.entity.Schedina;
-import it.schedina.entity.Scommessa;
 import it.schedina.entity.Selezione;
+import it.schedina.entity.Team;
 import it.schedina.service.AuthService;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -21,15 +21,13 @@ public class AdminSchedinaResource {
     @Inject AuthService auth;
 
     @GET
-    @Path("/by-concorso")
+    @Path("/by-giornata")
     @Transactional
-    public List<SchedinaDto.SchedinaSummary> byConcorso(
-            @HeaderParam("Authorization") String token,
-            @QueryParam("concorsoId") Long concorsoId) {
+    public List<SchedinaDto.SchedinaSummary> byGiornata(
+            @HeaderParam("Authorization") String token, @QueryParam("giornataId") Long giornataId) {
         auth.requireAdminOrMod(token);
-        if (concorsoId == null) throw new BadRequestException("concorsoId obbligatorio");
-        return Schedina.findByConcorso(concorsoId).stream()
-                .map(SchedinaDto.SchedinaSummary::from).toList();
+        if (giornataId == null) throw new BadRequestException("giornataId obbligatorio");
+        return Schedina.findByGiornata(giornataId).stream().map(SchedinaDto.SchedinaSummary::from).toList();
     }
 
     @GET
@@ -45,17 +43,22 @@ public class AdminSchedinaResource {
     public static SchedinaDto.SchedinaDetail detailOf(Schedina s) {
         List<SchedinaDto.SelezioneResponse> sels = new ArrayList<>();
         for (Selezione sel : Selezione.findBySchedina(s.id)) {
-            Scommessa b = Scommessa.findById(sel.betId);
-            String betLabel = b != null ? b.label : "?";
-            String official = b != null ? b.officialResultRef : null;
-            String choiceLabel = sel.choiceRef;
-            for (BetOption o : BetOption.findByBet(sel.betId)) {
-                if (o.ref.equals(sel.choiceRef)) { choiceLabel = o.label; break; }
-            }
+            Match m = Match.findById(sel.matchId);
+            String home = m != null ? teamName(m.homeTeamId) : "?";
+            String away = m != null ? teamName(m.awayTeamId) : "?";
             sels.add(new SchedinaDto.SelezioneResponse(
-                    sel.betId, betLabel, sel.choiceRef, choiceLabel, sel.isCorrect, official));
+                    sel.matchId, home, away, sel.choice1x2, sel.choiceUo,
+                    sel.correct1x2, sel.correctUo,
+                    m != null ? m.result1x2() : null,
+                    m != null ? m.resultUO() : null,
+                    m != null ? m.overUnderLine : null));
         }
-        return new SchedinaDto.SchedinaDetail(s.id, s.userId, s.concorsoId, s.status,
-                s.correctCount, s.isWinner, s.confirmedAt, sels);
+        return new SchedinaDto.SchedinaDetail(s.id, s.userId, s.giornataId, s.status,
+                s.correctCount, s.isWinner, sels);
+    }
+
+    private static String teamName(Long id) {
+        Team t = Team.findById(id);
+        return t != null ? t.name : "?";
     }
 }

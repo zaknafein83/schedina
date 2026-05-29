@@ -14,15 +14,14 @@ public final class ScommessaDto {
     public record OptionInput(@NotBlank String ref, String label, Integer displayOrder) {}
 
     public record ScommessaRequest(
-            Long concorsoId,
+            @NotNull Scommessa.Scope scope,
             @NotBlank String label,
             @NotNull Scommessa.Market market,
-            Long matchId,
-            Long tournamentId,
             Long seasonId,
+            Long giornataId,
+            Long matchId,
             Long leagueId,
-            Double overUnderLine,
-            /** Per i mercati TEAM/PLAYER vanno fornite; per i token (1X2/UO/GG) sono autogenerate. */
+            Long tournamentId,
             List<OptionInput> options
     ) {}
 
@@ -35,18 +34,16 @@ public final class ScommessaDto {
     }
 
     public record ScommessaResponse(
-            Long id, Long concorsoId, String label,
+            Long id, Scommessa.Scope scope, String label,
             Scommessa.Market market, Scommessa.TargetKind targetKind,
-            Long matchId, Long tournamentId, Long seasonId, Long leagueId,
-            Double overUnderLine, Scommessa.ResolutionMode resolutionMode,
-            Scommessa.Status status, String officialResultRef,
-            List<OptionResponse> options
+            Long seasonId, Long giornataId, Long matchId, Long tournamentId, Long leagueId,
+            Scommessa.ResolutionMode resolutionMode, Scommessa.Status status,
+            String officialResultRef, List<OptionResponse> options
     ) {
         public static ScommessaResponse from(Scommessa b, List<BetOption> opts) {
-            return new ScommessaResponse(
-                    b.id, b.concorsoId, b.label, b.market, b.targetKind(),
-                    b.matchId, b.tournamentId, b.seasonId, b.leagueId,
-                    b.overUnderLine, b.resolutionMode, b.status, b.officialResultRef,
+            return new ScommessaResponse(b.id, b.scope, b.label, b.market, b.targetKind(),
+                    b.seasonId, b.giornataId, b.matchId, b.tournamentId, b.leagueId,
+                    b.resolutionMode, b.status, b.officialResultRef,
                     opts.stream().map(OptionResponse::from).toList());
         }
     }

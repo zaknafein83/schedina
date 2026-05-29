@@ -1,0 +1,981 @@
+firstName,lastName,teamName,leagueName,role,isActive
+Andrea,Sassu,Avellino Monkeys,Serie A,DEF,true
+Lorenzo,Donati,Avellino Monkeys,Serie A,MID,true
+Emiliano,Naiaretti,Avellino Monkeys,Serie A,DEF,true
+Francesco,Avogaro,Avellino Monkeys,Serie A,DEF,true
+Gabriel,Rodilosso,Avellino Monkeys,Serie A,DEF,true
+Matteo,Liù,Avellino Monkeys,Serie A,DEF,true
+Davide,Sigillò,Avellino Monkeys,Serie A,DEF,true
+Alessio,Torres,Avellino Monkeys,Serie A,DEF,true
+Emiliano,Dicuonzo,Avellino Monkeys,Serie A,DEF,true
+Antonio,Fogliardi,Avellino Monkeys,Serie A,DEF,true
+Andrea,Lupus Lupinu,Avellino Monkeys,Serie A,DEF,true
+Antonio,Ippolito,Avellino Monkeys,Serie A,MID,true
+Pasquale,D'Abbraccio,Avellino Monkeys,Serie A,MID,true
+Aipom,Manhattan,Avellino Monkeys,Serie A,MID,true
+Graziano,Bruni,Avellino Monkeys,Serie A,MID,true
+Kevin,Trazza,Avellino Monkeys,Serie A,MID,true
+Manuel,Sferruzza,Avellino Monkeys,Serie A,DEF,true
+Raoul,Guzzi,Avellino Monkeys,Serie A,MID,true
+Alessio,Gega,Avellino Monkeys,Serie A,MID,true
+Andrea,Arzà,Avellino Monkeys,Serie A,MID,true
+Marco,Zanaboni,Avellino Monkeys,Serie A,GK,true
+Blackdevi,Bucci,Bari,Serie A,MID,true
+Francesco,Bomber Squeo,Bari,Serie A,MID,true
+Davide,Saladino,Bari,Serie A,FWD,true
+Calogero,Bono,Bari,Serie A,DEF,true
+Gabriele,Di Leo,Bari,Serie A,GK,true
+Matteo,Leoni,Bari,Serie A,DEF,true
+Luca,Sarra,Bari,Serie A,MID,true
+Alessandro,Cimino,Bari,Serie A,DEF,true
+Paolo,Puzzer,Bari,Serie A,MID,true
+Giovanni,Colaleo,Bari,Serie A,MID,true
+Fabrizio,Lopresto,Bari,Serie A,MID,true
+Mirko,Ambrosi,Bari,Serie A,MID,true
+Daniele,Alluviani,Bari,Serie A,MID,true
+Giacomo,Paolanti,Bari,Serie A,DEF,true
+Luigi,Giglio,Bari,Serie A,DEF,true
+Samuele,Tomassetti,Bari,Serie A,MID,true
+Lorenzo,Perelli,Bari,Serie A,DEF,true
+Cristian,Conti,Bari,Serie A,DEF,true
+Stefano,Cotta,Bologna Umarells,Serie A,MID,true
+Angela,Iadicicco,Bologna Umarells,Serie A,MID,true
+Alessandro,Gallo,Bologna Umarells,Serie A,MID,true
+Francesco,Carollo,Bologna Umarells,Serie A,MID,true
+Antonio,Di Gloria,Bologna Umarells,Serie A,MID,true
+Luigi,Savinelli,Bologna Umarells,Serie A,MID,true
+Pietro,Hulk Battista,Bologna Umarells,Serie A,GK,true
+Loris,Tigli,Bologna Umarells,Serie A,GK,true
+Fabio,Gamberini,Bologna Umarells,Serie A,DEF,true
+Mario,Torsello,Bologna Umarells,Serie A,DEF,true
+Mauro,Catalano,Bologna Umarells,Serie A,MID,true
+Alberto,Di Maria,Bologna Umarells,Serie A,DEF,true
+Antonio,Minerva,Bologna Umarells,Serie A,DEF,true
+Stefano,Bono,Bologna Umarells,Serie A,DEF,true
+Gianfranco,Colle,Bologna Umarells,Serie A,DEF,true
+Matteo,Fratti,Bologna Umarells,Serie A,DEF,true
+Alessandro,Pizzitola,Bologna Umarells,Serie A,DEF,true
+Ivan,Pato,Bologna Umarells,Serie A,MID,true
+Alessio,Consolati,Progetto Gaming,Serie A,DEF,true
+Francesco,Giannetti,Progetto Gaming,Serie A,DEF,true
+Pasqualino,Beccu,Progetto Gaming,Serie A,MID,true
+Angelo,Cesaretti,Progetto Gaming,Serie A,DEF,true
+Andrea,Cafarella,Progetto Gaming,Serie A,DEF,true
+Pasquale,Canario,Progetto Gaming,Serie A,MID,true
+Maichol,Schinello,Progetto Gaming,Serie A,MID,true
+Alessandro,Pironti,Progetto Gaming,Serie A,DEF,true
+Klaus,Trophobico,Progetto Gaming,Serie A,MID,true
+Emmanuel,Marchese,Progetto Gaming,Serie A,FWD,true
+Giuseppe,Morena,Progetto Gaming,Serie A,FWD,true
+Stefano,Santoro,Progetto Gaming,Serie A,MID,true
+Ivan,Torcolini,Progetto Gaming,Serie A,MID,true
+Ismaele,Maglie,Progetto Gaming,Serie A,DEF,true
+Tore,Tore,Progetto Gaming,Serie A,DEF,true
+Alessandro,D'Anteo,Progetto Gaming,Serie A,DEF,true
+Francesco,Fusco,Progetto Gaming,Serie A,GK,true
+Pier,Gaetano Fulco,Progetto Gaming,Serie A,GK,true
+Giuseppe,Di Caccamo,Progetto Gaming,Serie A,MID,true
+Manuel,Schiattareggia,Cesena Football Club,Serie B,MID,true
+Luigi,Valentino,Chievo,Serie A,MID,true
+Daniele,Greca,Chievo,Serie A,MID,true
+Sean,Pochini,Chievo,Serie A,MID,true
+Cristian,Artusa,Chievo,Serie A,DEF,true
+Pietro,Dal Tio,Chievo,Serie A,FWD,true
+Piero,Sassanelli,Chievo,Serie A,MID,true
+Matteo,Alberti,Chievo,Serie A,GK,true
+Cesare,Pisati,Chievo,Serie A,GK,true
+Simone,Clerici,Chievo,Serie A,DEF,true
+Francesco,Zaffuto,Chievo,Serie A,MID,true
+Davide,Muntoni,Chievo,Serie A,MID,true
+Giovanni,Nisi,Chievo,Serie A,MID,true
+Andrea,Pasella,Chievo,Serie A,MID,true
+Alessandro,Calchi,Chievo,Serie A,DEF,true
+Lorenzo,D'Autilia,Chievo,Serie A,DEF,true
+Francesco,Agapito Mariani,Chievo,Serie A,DEF,true
+Luca,Magnoni,Chievo,Serie A,DEF,true
+Filippo,Chiaramonte,Chievo,Serie A,DEF,true
+Alberto,Vaccaro,Chievo,Serie A,MID,true
+Alessio,La Rosa,Cremonese,Serie A,DEF,true
+Luca,Luigi Pichetto,Cremonese,Serie A,DEF,true
+Riccardo,Marinangeli,Cremonese,Serie A,GK,true
+Federico,Gallarato,Cremonese,Serie A,FWD,true
+Damiano,Mattia,Cremonese,Serie A,FWD,true
+Paolo,Bianchi,Cremonese,Serie A,DEF,true
+Giovanni,De Lucia,Cremonese,Serie A,DEF,true
+Andrea,Bazzani,Cremonese,Serie A,MID,true
+Christian,Impedovo,Cremonese,Serie A,FWD,true
+Matteo,Tirelli,Cremonese,Serie A,MID,true
+Angelo,Giraldi,Cremonese,Serie A,DEF,true
+Riccardo,Ricci,Cremonese,Serie A,GK,true
+Marco,Fazzini,Cremonese,Serie A,DEF,true
+Salvatore,Campagna,Cremonese,Serie A,MID,true
+Fiore,Gabriele Giordano,Cremonese,Serie A,DEF,true
+Ivano,Vitulli,Cremonese,Serie A,MID,true
+Giuseppe,Staniscia,Cremonese,Serie A,DEF,true
+Lorenzo,Savini,Cremonese,Serie A,MID,true
+Antonio,Del Prete,Cremonese,Serie A,MID,true
+Giuseppe,Bevilacqua,Cremonese,Serie A,FWD,true
+Christian,Augugliaro,Cremonese,Serie A,DEF,true
+Mariano,Pizzuti,Cremonese,Serie A,FWD,true
+Alberto,Capuzzi,Empoli Football Club,Serie A,MID,true
+Davide,Biggio,Empoli Football Club,Serie A,MID,true
+Marco,Godino,Empoli Football Club,Serie A,DEF,true
+Giuseppe,Ali Namane,Empoli Football Club,Serie A,MID,true
+Sergio,Saracino,Empoli Football Club,Serie A,MID,true
+Gabriele,Pianese,Empoli Football Club,Serie A,GK,true
+Luca,Guardini,Empoli Football Club,Serie A,MID,true
+Alessio,Di Grancio,Empoli Football Club,Serie A,MID,true
+Marco,Ternullo,Empoli Football Club,Serie A,MID,true
+Filippo,Todaro,Empoli Football Club,Serie A,DEF,true
+Luca,Iannone,Empoli Football Club,Serie A,DEF,true
+Matteo,Del Cesta,Empoli Football Club,Serie A,DEF,true
+Lorenzo,Marsili,Empoli Football Club,Serie A,DEF,true
+Mattia,Natale,Empoli Football Club,Serie A,MID,true
+Felice,Verdile,Empoli Football Club,Serie A,DEF,true
+Matteo,Terzi,Empoli Football Club,Serie A,DEF,true
+Francesco,Spirito,Empoli Football Club,Serie A,DEF,true
+Matteo,Puggioli,ACF Fiorentina,Serie A,DEF,true
+Luca,Pellicanò,ACF Fiorentina,Serie A,MID,true
+Mauro,Signorelli,ACF Fiorentina,Serie A,DEF,true
+Lorenzo,Amoruso,ACF Fiorentina,Serie A,MID,true
+Franco,Kidou Ugaglia,ACF Fiorentina,Serie A,MID,true
+Katiuscha,Carta,ACF Fiorentina,Serie A,DEF,true
+Simone,Bertoldo,ACF Fiorentina,Serie A,GK,true
+Elia,Mandri,ACF Fiorentina,Serie A,DEF,true
+Alessandro,Caluri,ACF Fiorentina,Serie A,DEF,true
+Luca,Forte,ACF Fiorentina,Serie A,MID,true
+Ferdinando,Amoruso,ACF Fiorentina,Serie A,MID,true
+Edoardo,Bonfanti,ACF Fiorentina,Serie A,MID,true
+Roman,Koval,ACF Fiorentina,Serie A,DEF,true
+Alessio,Volpi,ACF Fiorentina,Serie A,MID,true
+Daniele,Pusceddu,ACF Fiorentina,Serie A,MID,true
+Daniele,La Rocca,ACF Fiorentina,Serie A,DEF,true
+Nicholas,Ciccone,ACF Fiorentina,Serie A,FWD,true
+Giorgio,Pavone,ACF Fiorentina,Serie A,MID,true
+Francesco,Lostia,ACF Fiorentina,Serie A,GK,true
+Lele,Maverick,ACF Fiorentina,Serie A,MID,true
+Giacomo,Guarneri,ACF Fiorentina,Serie A,DEF,true
+Cristian,Marchese,FC Inter Milan,Serie A,MID,true
+Giovanni,Montella,FC Inter Milan,Serie A,MID,true
+Alberto,De Donatis,FC Inter Milan,Serie A,MID,true
+Luca,Ciampaglia,FC Inter Milan,Serie A,MID,true
+Marco,Bellinato,FC Inter Milan,Serie A,MID,true
+Salvuccio,Mastrolembo,FC Inter Milan,Serie A,DEF,true
+Nicolò,Baiardi,FC Inter Milan,Serie A,DEF,true
+Alessandro,Garofalo,FC Inter Milan,Serie A,DEF,true
+Nicola,Ciccotosto,FC Inter Milan,Serie A,DEF,true
+Claudio,Pinto,FC Inter Milan,Serie A,GK,true
+Tommaso,Pelizza,FC Inter Milan,Serie A,GK,true
+Alberto,Locatelli,FC Inter Milan,Serie A,FWD,true
+Paolo,Toscani,FC Inter Milan,Serie A,MID,true
+Riccardo,Venturelli,FC Inter Milan,Serie A,DEF,true
+Marco,Di Pasquale,FC Inter Milan,Serie A,MID,true
+Pietro,Di Martino,FC Inter Milan,Serie A,MID,true
+Luca,Di Prato,FC Inter Milan,Serie A,MID,true
+Leo,Vecchio,FC Inter Milan,Serie A,MID,true
+Domenico,Bisogno,FC Inter Milan,Serie A,DEF,true
+Davide,D'Alessandro,FC Inter Milan,Serie A,DEF,true
+Emanuele,Aruta,S.S. Lazio,Serie A,MID,true
+Davide,De Bello,S.S. Lazio,Serie A,DEF,true
+Gabriele,Marchi,S.S. Lazio,Serie A,MID,true
+Stefano,D'Offizi,S.S. Lazio,Serie A,FWD,true
+Fabio,Gatto,S.S. Lazio,Serie A,MID,true
+Dario,Nino Mazzei,S.S. Lazio,Serie A,DEF,true
+Giovanni,Baccellieri,S.S. Lazio,Serie A,DEF,true
+Luca,Siracusa,S.S. Lazio,Serie A,DEF,true
+Mattia,Fortebuono,S.S. Lazio,Serie A,MID,true
+Luca,Parente,S.S. Lazio,Serie A,DEF,true
+Andrea,Manzi,S.S. Lazio,Serie A,MID,true
+Antonio,Mazza,S.S. Lazio,Serie A,DEF,true
+Giancarlo,Labate,S.S. Lazio,Serie A,DEF,true
+Riccardo,Serafini,S.S. Lazio,Serie A,MID,true
+Fabio,Arcoleo,S.S. Lazio,Serie A,MID,true
+Gianpietro,De Santis,S.S. Lazio,Serie A,GK,true
+Lorenzo,De Santis,S.S. Lazio,Serie A,GK,true
+Lukhas,Bendorf,S.S. Lazio,Serie A,MID,true
+Simone,Moricca,S.S. Lazio,Serie A,DEF,true
+Andrea,Palmitessa,Monza,Serie A,DEF,true
+Simone,Anthony Valtolina,Monza,Serie A,DEF,true
+Alessandro,Ciaramella,Monza,Serie A,DEF,true
+Andrea,Chirico,Monza,Serie A,DEF,true
+Lorenzo,Donà,Monza,Serie A,MID,true
+Simone,Gualdi,Monza,Serie A,FWD,true
+Dimitri,Bonotto,Monza,Serie A,GK,true
+Andrea,Messina,Monza,Serie A,FWD,true
+Bernardo,Russo,Monza,Serie A,DEF,true
+Marco,Casetta,Monza,Serie A,MID,true
+Matteo,Cipollone,Monza,Serie A,MID,true
+Mirko,Malizia,Monza,Serie A,MID,true
+Stefano,Corrente,Monza,Serie A,DEF,true
+Lenny,Vio,Monza,Serie A,MID,true
+Giacomo,Evangelisti,Monza,Serie A,MID,true
+Mauro,Mussinelli,Monza,Serie A,GK,true
+Davide,Lombardo,Monza,Serie A,MID,true
+Andrea,Barchetta,Monza,Serie A,MID,true
+Andrea,Bozza,Monza,Serie A,DEF,true
+Giuseppe,Pistocchi,Monza,Serie A,DEF,true
+Luca,Libonati,Monza,Serie A,MID,true
+Federico,Di Prima,Napoli,Serie A,DEF,true
+Giuseppe,Galli Tognotta,Napoli,Serie A,MID,true
+Raffaele,Pascariello,Napoli,Serie A,DEF,true
+Nicola,Marrese,Napoli,Serie A,DEF,true
+Pasquale,Piscitelli,Napoli,Serie A,MID,true
+Sandro,Graziotti,Napoli,Serie A,DEF,true
+Lorenzo,Frattoni,Napoli,Serie A,MID,true
+Raffaele,Collia,Napoli,Serie A,MID,true
+Danny,Spinoso,Napoli,Serie A,DEF,true
+Pako,Angelino,Napoli,Serie A,MID,true
+Salvatore,Barbaro,Napoli,Serie A,GK,true
+Alessandro,Orlandini,Napoli,Serie A,DEF,true
+Riccardo,Niglio,Napoli,Serie A,DEF,true
+Pierpaolo,Palladino,Napoli,Serie A,MID,true
+Raffaele,Bortone,Napoli,Serie A,FWD,true
+Tommaso,Iaquaniello,Napoli,Serie A,DEF,true
+Davide,Hay,Napoli,Serie A,MID,true
+Simone,Trimarchi,RavennaZ,Serie A,DEF,true
+Luca,Amadori,RavennaZ,Serie A,DEF,true
+Nicola,Madeddu,RavennaZ,Serie A,MID,true
+Alessio,Chiarelli,RavennaZ,Serie A,DEF,true
+Paolo,Nocciolino,RavennaZ,Serie A,MID,true
+Fabio,Bicocchi,RavennaZ,Serie A,MID,true
+Mattia,Scala,RavennaZ,Serie A,GK,true
+Fabio,Marchesini,RavennaZ,Serie A,DEF,true
+Pietro,Loreta,RavennaZ,Serie A,MID,true
+Rorro,Reijinders,RavennaZ,Serie A,DEF,true
+Giovanni,Keglevich,RavennaZ,Serie A,MID,true
+Roberto,Roberto,RavennaZ,Serie A,DEF,true
+Gaetano,Baiamonte,RavennaZ,Serie A,FWD,true
+Giorgio,Mancini,RavennaZ,Serie A,MID,true
+Federico,Pasini,RavennaZ,Serie A,DEF,true
+Michael,Menghetti,RavennaZ,Serie A,MID,true
+Alfredo,Gatto,RavennaZ,Serie A,MID,true
+Alex,Casinghino,RavennaZ,Serie A,MID,true
+Andrea,Marroccoli,RavennaZ,Serie A,GK,true
+Christian,Pennisi,Torino,Serie A,MID,true
+Giacomo,Sedda,Torino,Serie A,DEF,true
+Agostino,Lupo,Torino,Serie A,MID,true
+Arnaldo,Figoni,Torino,Serie A,FWD,true
+Fabio,Cande,Torino,Serie A,MID,true
+Maurizio,Deidda,Torino,Serie A,MID,true
+Samuel,Massessi,Torino,Serie A,MID,true
+Luca,Spiga,Torino,Serie A,MID,true
+Gianluca,Pusceddu,Torino,Serie A,MID,true
+Francesco,Barone,Torino,Serie A,MID,true
+Andrea,Ciavarella,Torino,Serie A,DEF,true
+Andrea,Morina,Torino,Serie A,DEF,true
+Nicolò,Martinelli,Torino,Serie A,DEF,true
+Francesco,Benedetti,Torino,Serie A,FWD,true
+Giuseppe,Camoglio,Torino,Serie A,GK,true
+Riccardo,Todaro,Torino,Serie A,DEF,true
+Simone,Rotelli,Torino,Serie A,MID,true
+Alessio,Costantino,Torino,Serie A,DEF,true
+Khalil,Khala,Mambo,Serie A,DEF,true
+Simona,Torelli,Mambo,Serie A,MID,true
+Rocco,Malluzzo,Mambo,Serie A,MID,true
+Vasil,Pugachev,Mambo,Serie A,MID,true
+Matteo,Caciolli,Mambo,Serie A,DEF,true
+Francesco,Sisca,Mambo,Serie A,MID,true
+Michele,De Iulio,Mambo,Serie A,MID,true
+Marco,Accalai,Mambo,Serie A,DEF,true
+Lorenzo,Leotta,Mambo,Serie A,MID,true
+Gianfranco,Colucci,Mambo,Serie A,DEF,true
+Costantino,Pompa,Mambo,Serie A,FWD,true
+Davide,Dragone,Mambo,Serie A,DEF,true
+Francesco,Simonetti,Mambo,Serie A,DEF,true
+Daniel,Mastronardi,Mambo,Serie A,DEF,true
+Andrea,Buscaglia,Mambo,Serie A,DEF,true
+Raffaele,Santaniello,Mambo,Serie A,MID,true
+Manuel,Riva,Mambo,Serie A,GK,true
+Giuseppe,Formicola,Mambo,Serie A,GK,true
+Davide,Boffi,Mambo,Serie A,MID,true
+Gianluca,Fiorucci,Mambo,Serie A,MID,true
+Marco,Di Mauro,Palermo F.C.,Serie A,MID,true
+Paolo,Ceraolo,Palermo F.C.,Serie A,FWD,true
+Rosario,Giuseppe Alessandro Riggio,Palermo F.C.,Serie A,DEF,true
+Claudio,Di Mauro,Palermo F.C.,Serie A,GK,true
+Benito,Finocchiaro,Palermo F.C.,Serie A,MID,true
+Marco,Fontana,Palermo F.C.,Serie A,MID,true
+Gianluca,Badalamenti,Palermo F.C.,Serie A,MID,true
+Jerry,Jerome,Palermo F.C.,Serie A,MID,true
+Mauro,Scibetta,Palermo F.C.,Serie A,MID,true
+Andrea,Inghilleri,Palermo F.C.,Serie A,DEF,true
+Carlo,Cognata,Palermo F.C.,Serie A,DEF,true
+Erika,Parisi,Palermo F.C.,Serie A,DEF,true
+Massimo,Ingrande,Palermo F.C.,Serie A,DEF,true
+Giuseppe,Castiglia,Palermo F.C.,Serie A,DEF,true
+Salvatore,Grassadonia,Palermo F.C.,Serie A,MID,true
+Gianpiero,Joel,Palermo F.C.,Serie A,DEF,true
+Manuel,Scalici,Palermo F.C.,Serie A,MID,true
+Kun,Dispa,Palermo F.C.,Serie A,FWD,true
+Stefano,Quattrini,Mantova,Serie A,MID,true
+Rudy,Zago,Mantova,Serie A,DEF,true
+Mino,Ligorio,Mantova,Serie A,DEF,true
+Gennaro,Riccardi,Mantova,Serie A,DEF,true
+Nathan,Babubba,Mantova,Serie A,DEF,true
+Rida,Kaili,Mantova,Serie A,DEF,true
+Mario,Redavid,Mantova,Serie A,DEF,true
+Antonio,Esposito AA,Mantova,Serie A,MID,true
+Paride,Di Iure,Mantova,Serie A,DEF,true
+Luca,Marchetti,Mantova,Serie A,MID,true
+Vito,Amoruso,Mantova,Serie A,MID,true
+Pierluigi,Di Mauro,Mantova,Serie A,DEF,true
+Emanuele,Giusti,Mantova,Serie A,MID,true
+Edoardo,Pessano,Mantova,Serie A,MID,true
+Thomas,Grava,Mantova,Serie A,DEF,true
+Daniele,Dottori,Mantova,Serie A,GK,true
+Gad,Hakimian,Mantova,Serie A,FWD,true
+Kevin,Freshko,Mantova,Serie A,DEF,true
+Giuseppe,Dinatale,Mantova,Serie A,GK,true
+Mario,Sgang D'Amico,Mantova,Serie A,MID,true
+Luca,Franceschi,Mantova,Serie A,MID,true
+Romeo,Deganello,Forst Südtirol,Serie A,GK,true
+Davide,Carta,Forst Südtirol,Serie A,MID,true
+Alessio,Rossiello,Forst Südtirol,Serie A,GK,true
+Giuseppe,Bestia,Forst Südtirol,Serie A,FWD,true
+Davyd,Andriyesh,Forst Südtirol,Serie A,MID,true
+Marco,Turni,Forst Südtirol,Serie A,DEF,true
+Andelko,Salzanic,Forst Südtirol,Serie A,MID,true
+Flavio,Caravaglia,Forst Südtirol,Serie A,MID,true
+Nicolò,Gubbioli,Forst Südtirol,Serie A,DEF,true
+Gabriele,Ceschia,Forst Südtirol,Serie A,DEF,true
+Leonardo,Parigi,Forst Südtirol,Serie A,MID,true
+Gabriele,Apollonio,Forst Südtirol,Serie A,DEF,true
+Michael,Parodi,Forst Südtirol,Serie A,DEF,true
+Marco,Crocetti,Forst Südtirol,Serie A,MID,true
+Antonio,James,Forst Südtirol,Serie A,MID,true
+Eugenio,Kniahynicki,Forst Südtirol,Serie A,MID,true
+Paulo,Myronyk,Forst Südtirol,Serie A,DEF,true
+Vincenzo,Della Morte,Forst Südtirol,Serie A,DEF,true
+Daniele,Fulco,Union Entella,Serie A,MID,true
+Davide,Costarella,Union Entella,Serie A,GK,true
+Salvatore,Favenza,Union Entella,Serie A,DEF,true
+Francesco,Mastellone,Union Entella,Serie A,GK,true
+Gianluca,Palazzo,Union Entella,Serie A,MID,true
+Marco,Conti,Union Entella,Serie A,MID,true
+Richard,Jacinto,Union Entella,Serie A,DEF,true
+Marco,Mulinacci,Union Entella,Serie A,DEF,true
+Simone,Ronca,Union Entella,Serie A,DEF,true
+Stock,Grant Hudson,Union Entella,Serie A,FWD,true
+Giovanni,Ambrosino,Union Entella,Serie A,MID,true
+Lorenzo,Sirigu,Union Entella,Serie A,DEF,true
+Diego,Mazza,Union Entella,Serie A,MID,true
+Matteo,Spriano,Union Entella,Serie A,MID,true
+Demetrio,Neri,Union Entella,Serie A,MID,true
+Luca,Fjordvik,Union Entella,Serie A,MID,true
+Stefano,Mattacola,Union Entella,Serie A,DEF,true
+Alessandro,Sgrò,Union Entella,Serie A,DEF,true
+Giulio,Valerio Ottaviani,Union Entella,Serie A,MID,true
+Francesca,Torcolini,Villaggio Prenestino,Serie A,DEF,true
+Luigi,Mainiero,Villaggio Prenestino,Serie A,DEF,true
+Vincenzo,Zazzaro Alfano,Villaggio Prenestino,Serie A,DEF,true
+Leonardo,Trincia,Villaggio Prenestino,Serie A,MID,true
+Giacomo,Ricco,Villaggio Prenestino,Serie A,DEF,true
+Claudio,Vento,Villaggio Prenestino,Serie A,DEF,true
+Yuri,Monti,Villaggio Prenestino,Serie A,DEF,true
+Daniele,Raffioni,Villaggio Prenestino,Serie A,MID,true
+Mario,Mariozzi,Villaggio Prenestino,Serie A,MID,true
+Alessandro,Capuozzo,Villaggio Prenestino,Serie A,MID,true
+Nicolò,Delmonte,Villaggio Prenestino,Serie A,MID,true
+Emanuele,Ietto,Villaggio Prenestino,Serie A,MID,true
+Federico,Picchi,Villaggio Prenestino,Serie A,MID,true
+Marty,Pedà,Villaggio Prenestino,Serie A,MID,true
+Domenico,Pedà,Villaggio Prenestino,Serie A,FWD,true
+Antonio,Pirozzi,Villaggio Prenestino,Serie A,FWD,true
+Francesco,Gravinese,Villaggio Prenestino,Serie A,DEF,true
+Daniele,Piacentini,Villaggio Prenestino,Serie A,GK,true
+Cristian,Rettore,Villaggio Prenestino,Serie A,DEF,true
+Francesco,Siciliano,Villaggio Prenestino,Serie A,MID,true
+Stefano,Perra,Villaggio Prenestino,Serie A,GK,true
+Denis,Coghi,Roma SMR,Serie B,MID,true
+Federico,Violati,Roma SMR,Serie B,MID,true
+Edoardo,D'Orazio,Roma SMR,Serie B,DEF,true
+Luca,Sverze,Roma SMR,Serie B,MID,true
+Giuliano,Interlandi,Roma SMR,Serie B,FWD,true
+Lorenzo,De Angeli,Roma SMR,Serie B,MID,true
+Andrea,Ostinelli,Roma SMR,Serie B,DEF,true
+Alessandro,Pezzillo,Roma SMR,Serie B,MID,true
+Roberto,Martellucci,Roma SMR,Serie B,DEF,true
+Juri,Meluzzi,Roma SMR,Serie B,MID,true
+Claudio,Manfredi Franco,Roma SMR,Serie B,FWD,true
+Francesco,Fontana,Roma SMR,Serie B,DEF,true
+Nicola,Monacelli,Roma SMR,Serie B,DEF,true
+Matteo,Paulis,Roma SMR,Serie B,GK,true
+Massimo,Menchi,Roma SMR,Serie B,DEF,true
+Alessio,Berti,Roma SMR,Serie B,MID,true
+Hasim,Bajrami,Roma SMR,Serie B,MID,true
+Vittorio,Boller,Roma SMR,Serie B,FWD,true
+Samuele,Toscanelli,Roma SMR,Serie B,MID,true
+Marco,Baragetti,Alessandria,Serie B,GK,true
+Lorenzo,Foggi Viligiardi,Alessandria,Serie B,FWD,true
+Peter,Kreiser,Alessandria,Serie B,DEF,true
+Flavio,Bramucci,Alessandria,Serie B,MID,true
+Antonio,Torraco,Alessandria,Serie B,DEF,true
+Giacomo,Varotto,Alessandria,Serie B,FWD,true
+Miky,Von Chiappon,Alessandria,Serie B,DEF,true
+Alessio,Ippolito Rinaldi,Alessandria,Serie B,DEF,true
+Alex,Ferrari,Alessandria,Serie B,MID,true
+Angelo,Longoni,Alessandria,Serie B,MID,true
+Andrea,Pallante,Alessandria,Serie B,DEF,true
+Patrizio,Cioffi,Alessandria,Serie B,MID,true
+Samuele,D'Angelo,Alessandria,Serie B,MID,true
+Gabriele,Siliziako,Alessandria,Serie B,DEF,true
+Luke,Ciuki,Alessandria,Serie B,MID,true
+Fabrizio,Carboni,Alessandria,Serie B,MID,true
+Antonio,Cirino,Alessandria,Serie B,DEF,true
+Carmine,Lupia,Alessandria,Serie B,MID,true
+Giuseppe,Tuccio,Bologna Umarells,Serie A,FWD,true
+Lenny,Cazzamalli,Bologna Umarells,Serie A,DEF,true
+Andrea,Manunza,Brescia,Serie B,MID,true
+Andrea,Veneziale,Brescia,Serie B,MID,true
+Walter,Genna,Brescia,Serie B,MID,true
+Leonardo,Saragato,Brescia,Serie B,MID,true
+Giuseppe,De Nuzzo,Brescia,Serie B,MID,true
+Giancarlo,Ghidoni,Brescia,Serie B,DEF,true
+Antonello,Zappatore,Brescia,Serie B,DEF,true
+Salvatore,Alagna,Brescia,Serie B,MID,true
+Dani,Anadi,Brescia,Serie B,GK,true
+Francesco,Viola,Brescia,Serie B,DEF,true
+Mariano,Rocco,Brescia,Serie B,GK,true
+Riccardo,Rex,Brescia,Serie B,DEF,true
+Emanuele,Fischione,Brescia,Serie B,DEF,true
+Franco,Bisquo,Brescia,Serie B,FWD,true
+Simone,Bertoletti,Brescia,Serie B,DEF,true
+Camillo,Ferrigni,Brescia,Serie B,DEF,true
+Vincenzo,Piarulli,Cagliari Calcio,Serie B,MID,true
+Giacomo,Canavesi,Cagliari Calcio,Serie B,DEF,true
+Simone,Piffari,Cagliari Calcio,Serie B,MID,true
+Lorenzo,Pace,Cagliari Calcio,Serie B,MID,true
+Ernesto,Russolillo,Cagliari Calcio,Serie B,MID,true
+Carmelo,Camerino,Cagliari Calcio,Serie B,GK,true
+Simone,Beretta,Cagliari Calcio,Serie B,DEF,true
+Giuseppe,Feola,Cagliari Calcio,Serie B,DEF,true
+Leonardo,Barilli,Cagliari Calcio,Serie B,MID,true
+Alessio,Scafetta,Cagliari Calcio,Serie B,DEF,true
+Luca,Loi,Cagliari Calcio,Serie B,GK,true
+Luca,Soldatich,Cagliari Calcio,Serie B,MID,true
+Andrea,Di Martino,Cagliari Calcio,Serie B,DEF,true
+Christian,Risatti,Cagliari Calcio,Serie B,MID,true
+Mario,Carotenuto,Cagliari Calcio,Serie B,MID,true
+Domenico,Ferraro,Cagliari Calcio,Serie B,DEF,true
+Gian,Franco Sanna,Cagliari Calcio,Serie B,DEF,true
+Tommaso,Vanni,Cagliari Calcio,Serie B,MID,true
+Michelepio,Bombai,Carpi,Serie B,DEF,true
+Francesco,Tirocchi,Carpi,Serie B,DEF,true
+Daniel,Brancato,Carpi,Serie B,FWD,true
+Simone,Tave,Carpi,Serie B,MID,true
+Michele,Dribblino,Carpi,Serie B,DEF,true
+Francesco,Generale,Carpi,Serie B,MID,true
+Niccolò,Bucosse,Carpi,Serie B,MID,true
+Dennis,Di Pietro,Carpi,Serie B,DEF,true
+Florind,Fletcher,Carpi,Serie B,MID,true
+Enrico,Dimino,Carpi,Serie B,GK,true
+Leonardo,Driussi,Carpi,Serie B,MID,true
+Jacopo,Pisasale,Carpi,Serie B,MID,true
+Gabriele,Nuzzi,Carpi,Serie B,GK,true
+Marco,Sportolari,Carpi,Serie B,DEF,true
+Daniele,Puppinho,Carpi,Serie B,MID,true
+Manuel,Orlando,Carpi,Serie B,DEF,true
+Gabriele,Corno,Catanzaro Juniors,Serie B,FWD,true
+Claudio,Cavalieri,Catanzaro Juniors,Serie B,MID,true
+Mihai,Rares Piu,Catanzaro Juniors,Serie B,MID,true
+Serena,Giusti,Catanzaro Juniors,Serie B,DEF,true
+Michele,Brusaferri,Catanzaro Juniors,Serie B,DEF,true
+Enrico,Testi,Catanzaro Juniors,Serie B,DEF,true
+Alessandro,Casiraro,Catanzaro Juniors,Serie B,MID,true
+Paolo,Gigante,Catanzaro Juniors,Serie B,DEF,true
+Francesco,Pellegrino,Catanzaro Juniors,Serie B,DEF,true
+Stephan,Celesia,Catanzaro Juniors,Serie B,GK,true
+Alessandro,Dies,Catanzaro Juniors,Serie B,DEF,true
+Giuseppe,Trovato,Catanzaro Juniors,Serie B,FWD,true
+Stefano,Pellone,Catanzaro Juniors,Serie B,MID,true
+Alexandru,Iosub,Catanzaro Juniors,Serie B,GK,true
+Emanuele,Maioli,Catanzaro Juniors,Serie B,MID,true
+Mauro,Carfì,Catanzaro Juniors,Serie B,DEF,true
+Jacopo,Fabrizio,Catanzaro Juniors,Serie B,DEF,true
+Florestano,Ulisse Girolami,Catanzaro Juniors,Serie B,MID,true
+Matteo,Croatti,Cesena Football Club,Serie B,MID,true
+Aldo,Lo Piano,Cesena Football Club,Serie B,DEF,true
+Christian,Rafaniello,Cesena Football Club,Serie B,DEF,true
+Matteo,Solletti,Cesena Football Club,Serie B,DEF,true
+Diego,Ballerini,Cesena Football Club,Serie B,DEF,true
+Paul,Pettone,Cesena Football Club,Serie B,MID,true
+Vincenzo,De Lucia,Cesena Football Club,Serie B,FWD,true
+Roger,Jolly,Cesena Football Club,Serie B,MID,true
+Omar,Degl'Innocenti,Cesena Football Club,Serie B,FWD,true
+Giovanni,Esposito,Cesena Football Club,Serie B,MID,true
+Franco,Genzo,Cesena Football Club,Serie B,GK,true
+Mirco,Carlino,Cesena Football Club,Serie B,MID,true
+Lorenzo,Lazzari,Cesena Football Club,Serie B,MID,true
+Paolo,Valaderio,Genoa CFC,Serie B,MID,true
+Marco,Urso,Genoa CFC,Serie B,MID,true
+Mark,Aperio,Genoa CFC,Serie B,MID,true
+Antonio,Accardo,Genoa CFC,Serie B,DEF,true
+Veronica,Di Paolo,Genoa CFC,Serie B,MID,true
+Pietro,Alaimo,Genoa CFC,Serie B,MID,true
+Fabio,Violante,Genoa CFC,Serie B,DEF,true
+Luca,Belforte,Genoa CFC,Serie B,MID,true
+Stefano,Petino,Genoa CFC,Serie B,MID,true
+Alfio,Giuseppe Grasso,Genoa CFC,Serie B,MID,true
+Lorenzo,Valentino,Genoa CFC,Serie B,DEF,true
+Giuseppe,Visconti,Genoa CFC,Serie B,DEF,true
+Simone,Gallus,Genoa CFC,Serie B,GK,true
+Umberto,Basciano,Genoa CFC,Serie B,MID,true
+Bruno,D'Artibale,Genoa CFC,Serie B,DEF,true
+Philip,Irle,Genoa CFC,Serie B,MID,true
+Paolo,Di Stefano,Genoa CFC,Serie B,GK,true
+Adry,Monaco,Genoa CFC,Serie B,FWD,true
+Luca,Motta,Genoa CFC,Serie B,DEF,true
+Thèo,Bassissi,Genoa CFC,Serie B,DEF,true
+John,Scrooge,Juventus FC,Serie B,GK,true
+Luca,Sardo,Juventus FC,Serie B,DEF,true
+Simona,Di Lauro,Juventus FC,Serie B,FWD,true
+Ferdinando,Grimaudo,Juventus FC,Serie B,MID,true
+Antonio,Carrano,Juventus FC,Serie B,GK,true
+Marco,Barusco,Juventus FC,Serie B,DEF,true
+Daniele,Collano,Juventus FC,Serie B,MID,true
+Alessandro,Gallorini,Juventus FC,Serie B,FWD,true
+Luca,Brian Santoro,Juventus FC,Serie B,FWD,true
+Valerio,Coladangelo,Juventus FC,Serie B,MID,true
+Tony,Chiappamatti,Juventus FC,Serie B,DEF,true
+Davide,Sebastiani,Juventus FC,Serie B,MID,true
+Angelo,Zirattu,Juventus FC,Serie B,MID,true
+Giovanni,Di Maggio,Juventus FC,Serie B,DEF,true
+Francesco,Di Liddo,Juventus FC,Serie B,DEF,true
+Thomas,Battiata,Juventus FC,Serie B,MID,true
+Francesco,Terlati,Juventus FC,Serie B,FWD,true
+Luca,Ottaviano,Novara Goats,Serie B,MID,true
+Angelo,Mosciaro,Novara Goats,Serie B,MID,true
+Leonardoz,Scasciafratti,Novara Goats,Serie B,DEF,true
+Matteo,Marchi,Novara Goats,Serie B,DEF,true
+Fabrizio,Redina,Novara Goats,Serie B,MID,true
+Alfredo,Aloi,Novara Goats,Serie B,GK,true
+Lorenzo,Bernazzani,Novara Goats,Serie B,DEF,true
+Rostislav,Koturlash,Novara Goats,Serie B,FWD,true
+Lukas,Alves,Novara Goats,Serie B,GK,true
+William,Cioè,Novara Goats,Serie B,MID,true
+Iacopo,Mezzadri,Novara Goats,Serie B,MID,true
+Mariano,De Biase,Novara Goats,Serie B,DEF,true
+Giorgio,Sciubba,Novara Goats,Serie B,DEF,true
+Andrea,Marini,Novara Goats,Serie B,DEF,true
+Giulio,Nicolino,Novara Goats,Serie B,MID,true
+Luca,Foroni,Novara Goats,Serie B,MID,true
+Biagio,Servidio,Novara Goats,Serie B,MID,true
+Samuele,Cosma,Novara Goats,Serie B,DEF,true
+Marco,Moro,Novara Goats,Serie B,DEF,true
+Niccolò,Lamarca,Novara Goats,Serie B,MID,true
+Alessio,Marchegiani,Parma Calcio 1913,Serie B,MID,true
+Alessio,Fabiani,Parma Calcio 1913,Serie B,MID,true
+Cristina,Taranto,Parma Calcio 1913,Serie B,MID,true
+Manuel,Quattrina,Parma Calcio 1913,Serie B,GK,true
+Exequiel,Cervi,Parma Calcio 1913,Serie B,FWD,true
+Paolo,Pistidda,Parma Calcio 1913,Serie B,MID,true
+Simone,Giuntini,Parma Calcio 1913,Serie B,MID,true
+Maurizio,Semeraro,Parma Calcio 1913,Serie B,MID,true
+Paolo,Volpe,Parma Calcio 1913,Serie B,DEF,true
+Carmelo,Antonino Ceraolo,Parma Calcio 1913,Serie B,FWD,true
+Chiara,Gagliardi,Parma Calcio 1913,Serie B,MID,true
+Michele,Sogari,Parma Calcio 1913,Serie B,MID,true
+Roberto,Sarcina,Parma Calcio 1913,Serie B,DEF,true
+Stefano,Dimartino,Parma Calcio 1913,Serie B,DEF,true
+Nicholas,Dragoni,Parma Calcio 1913,Serie B,DEF,true
+Roberto,Roma,Parma Calcio 1913,Serie B,DEF,true
+Isabella,Iuga,Parma Calcio 1913,Serie B,DEF,true
+Monica,Merrineo,Parma Calcio 1913,Serie B,DEF,true
+Ginevra,Covioli,Parma Calcio 1913,Serie B,DEF,true
+Fabio,Faccioli,Parma Calcio 1913,Serie B,FWD,true
+Simone,Giovannini,Parma Calcio 1913,Serie B,MID,true
+Oliver,Mayor,Pescara Dolphins,Serie B,DEF,true
+Piero,D'Alessandro,Pescara Dolphins,Serie B,MID,true
+Alessandro,Vitagliano,Pescara Dolphins,Serie B,MID,true
+Simone,D'Annibale,Pescara Dolphins,Serie B,DEF,true
+Panoz,Panoz,Pescara Dolphins,Serie B,MID,true
+Andrea,Toni,Pescara Dolphins,Serie B,GK,true
+Betim,Xhyliqi,Pescara Dolphins,Serie B,MID,true
+Massimiliano,Guerra,Pescara Dolphins,Serie B,GK,true
+Antonio,Grimaldi,Pescara Dolphins,Serie B,MID,true
+Antonio,Dessì,Pescara Dolphins,Serie B,FWD,true
+Samir,Bertolotto,Pescara Dolphins,Serie B,MID,true
+Danilo,Vitagliano,Pescara Dolphins,Serie B,MID,true
+Andrea,Corona,Pescara Dolphins,Serie B,DEF,true
+Ndonj,Lupank,Pescara Dolphins,Serie B,DEF,true
+Cristian,Costantino,Pescara Dolphins,Serie B,DEF,true
+Giovanni,Antonelli,Pescara Dolphins,Serie B,DEF,true
+Riccardo,Delicato,Pescara Dolphins,Serie B,DEF,true
+Gianni,Franzese,Pescara Dolphins,Serie B,MID,true
+Giorgio,Laurendi,Reggina,Serie B,GK,true
+Saverio,Bova,Reggina,Serie B,FWD,true
+Cristian,Arrigo,Reggina,Serie B,MID,true
+Vincenzo,De Stefano,Reggina,Serie B,DEF,true
+Alessandro,Terzo,Reggina,Serie B,MID,true
+Carletto,Tozzone,Reggina,Serie B,GK,true
+Tiziano,Trimboli,Reggina,Serie B,MID,true
+Antonino,Cuzzola,Reggina,Serie B,DEF,true
+Andrea,Bergonzini,Reggina,Serie B,MID,true
+Jacopo,Perinetti,Reggina,Serie B,DEF,true
+Giuseppe,Vita,Reggina,Serie B,MID,true
+Lady,Oscar,Reggina,Serie B,DEF,true
+Antonio,Calù,Reggina,Serie B,DEF,true
+Mario,Van Beuge,Reggina,Serie B,MID,true
+Matteo,Martino,Reggina,Serie B,MID,true
+Pietro,Arrigo,Reggina,Serie B,DEF,true
+Fabio,Aurelio Versaci,Reggina,Serie B,MID,true
+Sebastiano,Seby Marino,Reggina,Serie B,MID,true
+Antonio,Modafferi,Reggina,Serie B,DEF,true
+Luca,Pedroletti,Reggina,Serie B,MID,true
+Fabio,Ceol,U.C. Sampdoria,Serie B,MID,true
+Lisa,Berandi,U.C. Sampdoria,Serie B,MID,true
+Marika,Zendron,U.C. Sampdoria,Serie B,MID,true
+Gianluca,Pattarozzi,U.C. Sampdoria,Serie B,MID,true
+Andrea,Benvenuto,U.C. Sampdoria,Serie B,MID,true
+Roberto,Boccuto,U.C. Sampdoria,Serie B,MID,true
+Mauro,Cappellari,U.C. Sampdoria,Serie B,MID,true
+Manlio,Ferrara,U.C. Sampdoria,Serie B,DEF,true
+Nandinho,Carlos,U.C. Sampdoria,Serie B,DEF,true
+Vittorio,Vaglia,U.C. Sampdoria,Serie B,DEF,true
+Federico,Martini,U.C. Sampdoria,Serie B,DEF,true
+Sgueer,Pika,U.C. Sampdoria,Serie B,DEF,true
+Mattia,Bianconi,U.C. Sampdoria,Serie B,DEF,true
+Serafino,Gaetano,U.C. Sampdoria,Serie B,MID,true
+Squalo,Ferrari,U.C. Sampdoria,Serie B,MID,true
+Danilo,Alberghetti,U.C. Sampdoria,Serie B,DEF,true
+Gennaro,Verde,U.C. Sampdoria,Serie B,DEF,true
+Paolo,Ferri,U.C. Sampdoria,Serie B,FWD,true
+Rafael,J. Rizzo,U.C. Sampdoria,Serie B,GK,true
+Larbi,Lansari,Udinese Calcio,Serie B,GK,true
+Biagio,Alfano,Udinese Calcio,Serie B,DEF,true
+Luigi,Santomartino,Udinese Calcio,Serie B,DEF,true
+Igor,Miti,Udinese Calcio,Serie B,DEF,true
+Davide,Morbegno,Udinese Calcio,Serie B,MID,true
+Gabriele,Pacini,Udinese Calcio,Serie B,MID,true
+Luca,Catarzi,Udinese Calcio,Serie B,DEF,true
+Davide,Benetti,Udinese Calcio,Serie B,FWD,true
+Gianluca,Di Martino,Udinese Calcio,Serie B,DEF,true
+Dark,Zena,Udinese Calcio,Serie B,MID,true
+Mattia,Basone,Udinese Calcio,Serie B,DEF,true
+Stefano,Marcheggiani,Udinese Calcio,Serie B,MID,true
+Leonardo,Pacini,Udinese Calcio,Serie B,MID,true
+Goku,Kevin Kira,Udinese Calcio,Serie B,MID,true
+John,Daniel Sarto,Udinese Calcio,Serie B,DEF,true
+Christian,Duecento,Udinese Calcio,Serie B,MID,true
+Loris,Fioramanti,Udinese Calcio,Serie B,DEF,true
+Katia,Ferrari,Udinese Calcio,Serie B,MID,true
+Anthony,The Pidgeon,Udinese Calcio,Serie B,FWD,true
+Giuseppe,Pellicanò,Catania,Serie B,MID,true
+Marco,Fabbian,Catania,Serie B,GK,true
+Salvatore,Raciti,Catania,Serie B,MID,true
+Christian,Portuesi,Catania,Serie B,MID,true
+Cristian,Guarnera,Catania,Serie B,MID,true
+Alessandro,Panzini,Catania,Serie B,MID,true
+Emanuel,Rinaldi,Catania,Serie B,MID,true
+Frappo,Frappo,Catania,Serie B,GK,true
+Gianluca,Castellana,Catania,Serie B,MID,true
+Carmelo,Russo,Catania,Serie B,FWD,true
+Federico,Pisan,Catania,Serie B,MID,true
+Fabio,Sortino,Catania,Serie B,DEF,true
+Giulio,Lanzafame,Catania,Serie B,DEF,true
+Davide,Ansaldi,Catania,Serie B,DEF,true
+Peppe,Lancilla,Catania,Serie B,DEF,true
+Antonio,Gargiulo,Catania,Serie B,DEF,true
+Antonello,Calise,Catania,Serie B,MID,true
+Matteo,Midolo,Catania,Serie B,DEF,true
+Andrea,Pizzi,Catania,Serie B,MID,true
+Rosario,Vitale,Catania,Serie B,DEF,true
+Giovanni,Gallo,U.S. Sassuolo,Serie B,MID,true
+Enrico,Urtis,U.S. Sassuolo,Serie B,DEF,true
+Gianni,Flagiello,U.S. Sassuolo,Serie B,DEF,true
+Simone,Bottan,U.S. Sassuolo,Serie B,DEF,true
+Danilo,D'Amuri,U.S. Sassuolo,Serie B,DEF,true
+Amedeo,Squeglia,U.S. Sassuolo,Serie B,MID,true
+Lorenzo,Elia,U.S. Sassuolo,Serie B,DEF,true
+Walter,D'Auria,U.S. Sassuolo,Serie B,MID,true
+Riccardo,Gay,U.S. Sassuolo,Serie B,GK,true
+Lorenzo,Mazzilli,U.S. Sassuolo,Serie B,MID,true
+Alessandro,Minelli,U.S. Sassuolo,Serie B,MID,true
+Daniele,Minchillo,U.S. Sassuolo,Serie B,GK,true
+Nicholas,Di Maulo,U.S. Sassuolo,Serie B,FWD,true
+Tommaso,Togni,U.S. Sassuolo,Serie B,MID,true
+Valerio,Bello,U.S. Sassuolo,Serie B,DEF,true
+Raimondo,Raffaele De Gennaro,U.S. Sassuolo,Serie B,FWD,true
+Antonino,Maniaci,U.S. Sassuolo,Serie B,MID,true
+Massimiliano,Muzio,U.S. Sassuolo,Serie B,MID,true
+Carmine,Granata,U.S. Sassuolo,Serie B,MID,true
+Vincenzo,Mosca,U.S. Sassuolo,Serie B,MID,true
+Francesco,Di Matteo,Akragas Città dei Templi,Serie B,DEF,true
+Simone,Tomeo,Akragas Città dei Templi,Serie B,DEF,true
+Alberto,Notarangelo,Akragas Città dei Templi,Serie B,DEF,true
+Manuel,Bonetti,Akragas Città dei Templi,Serie B,MID,true
+Marco,Vitale,Akragas Città dei Templi,Serie B,FWD,true
+Andrea,Ingrassia,Akragas Città dei Templi,Serie B,MID,true
+Kostas,Nunez,Akragas Città dei Templi,Serie B,MID,true
+Davide,Gismondi,Akragas Città dei Templi,Serie B,DEF,true
+Francesco,Albarano,Akragas Città dei Templi,Serie B,MID,true
+Stefano,Vaccaro,Akragas Città dei Templi,Serie B,MID,true
+Diego,Martinelli,Akragas Città dei Templi,Serie B,GK,true
+Giuseppe,Tedesco,Akragas Città dei Templi,Serie B,DEF,true
+Simone,Lucatelli,Akragas Città dei Templi,Serie B,FWD,true
+Roberto,Indagati,Akragas Città dei Templi,Serie B,MID,true
+Antonio,Vittorio Montuori,Akragas Città dei Templi,Serie B,MID,true
+Rocco,Notaro,Akragas Città dei Templi,Serie B,MID,true
+Tomas,Bergovic,Akragas Città dei Templi,Serie B,DEF,true
+Tommaso,Marini,Akragas Città dei Templi,Serie B,MID,true
+Davide,Giuttari,Akragas Città dei Templi,Serie B,GK,true
+Pier,Luigi Dionisio,Akragas Città dei Templi,Serie B,DEF,true
+Alessandro,Verani,Villaggio Prenestino,Serie A,MID,true
+Ciro,Oreste Sirignano,Città di Campobasso,Serie B,DEF,true
+Giuseppe,Ungaro,Città di Campobasso,Serie B,MID,true
+Antonio,Caprino,Città di Campobasso,Serie B,DEF,true
+Ugo,Rubicondo,Città di Campobasso,Serie B,DEF,true
+Matteo,Tonolini,Città di Campobasso,Serie B,MID,true
+Gaetano,Paterniti,Città di Campobasso,Serie B,MID,true
+Diego,Matrecano,Città di Campobasso,Serie B,DEF,true
+Mario,Fiore,Città di Campobasso,Serie B,MID,true
+Luca,Bruni,Città di Campobasso,Serie B,GK,true
+Diego,Basili,Città di Campobasso,Serie B,GK,true
+Francisco,Tispiezzo,Città di Campobasso,Serie B,DEF,true
+Davide,Franciò,Città di Campobasso,Serie B,FWD,true
+Stefano,Terracciano,Città di Campobasso,Serie B,MID,true
+Davide,Raffioni,Città di Campobasso,Serie B,DEF,true
+Roberto,Pitorri,Città di Campobasso,Serie B,DEF,true
+Andrei,Gavril,Città di Campobasso,Serie B,MID,true
+Simone,Martini,Città di Campobasso,Serie B,MID,true
+Samuele,Stivaletti,Città di Campobasso,Serie B,MID,true
+Walter,Corso,Città di Campobasso,Serie B,MID,true
+Mattia,Fedeli,Città di Campobasso,Serie B,MID,true
+Nicola,Putton,A. C. Garda,Serie B,DEF,true
+Christopher,Sentina,A. C. Garda,Serie B,MID,true
+Emanuele,Catoni,A. C. Garda,Serie B,MID,true
+Domenico,Saettella,A. C. Garda,Serie B,DEF,true
+Teo,Moro,A. C. Garda,Serie B,MID,true
+Fabrizio,Saraceno,A. C. Garda,Serie B,MID,true
+Alberto,Buzzi,A. C. Garda,Serie B,DEF,true
+Gianluca,Tomasini,A. C. Garda,Serie B,GK,true
+Carmine,Sansone,A. C. Garda,Serie B,MID,true
+Marco,Morabito,A. C. Garda,Serie B,DEF,true
+Mirko,Sangiorgio,A. C. Garda,Serie B,MID,true
+Teto,Power,A. C. Garda,Serie B,MID,true
+Mattia,Castelli,A. C. Garda,Serie B,DEF,true
+Francesco,Indiveri,A. C. Garda,Serie B,MID,true
+Matteo,Pelosi,A. C. Garda,Serie B,DEF,true
+Pasquale,Cesaride,A. C. Garda,Serie B,DEF,true
+Alberto,Bifano,A. C. Garda,Serie B,MID,true
+Michele,Minopoli,A. C. Garda,Serie B,DEF,true
+Lorenzo,Tosi,Associazione Calcio Milan,Serie C,DEF,true
+Frandar,Lothbrok,Associazione Calcio Milan,Serie C,MID,true
+Rito,De Michele,Associazione Calcio Milan,Serie C,DEF,true
+Lukas,Di Toro Mammarella,Associazione Calcio Milan,Serie C,FWD,true
+Gianluca,Monaco,Associazione Calcio Milan,Serie C,DEF,true
+Enzo,Santoro,Associazione Calcio Milan,Serie C,MID,true
+Carlo,Maiorano,Associazione Calcio Milan,Serie C,DEF,true
+Fabijan,Rusović,Associazione Calcio Milan,Serie C,MID,true
+Julian,Ross,Associazione Calcio Milan,Serie C,FWD,true
+Salvatore,Diana,Associazione Calcio Milan,Serie C,DEF,true
+Stefano,Lamera,Associazione Calcio Milan,Serie C,MID,true
+Naël,Martin,Associazione Calcio Milan,Serie C,DEF,true
+Nandinho,Do Tuppareddu,Associazione Calcio Milan,Serie C,MID,true
+Vincenzo,Calde,Associazione Calcio Milan,Serie C,MID,true
+Sarino,Armando Maradona,Associazione Calcio Milan,Serie C,MID,true
+Leroy,Merlin,Associazione Calcio Milan,Serie C,GK,true
+Ciro,Addeo,Associazione Calcio Milan,Serie C,DEF,true
+Giancarlo,Grimaldi,Como 1907,Serie C,MID,true
+Marcello,Casiraro,Como 1907,Serie C,MID,true
+Raffaele,Zicolella,Como 1907,Serie C,MID,true
+Cristiano,Boni,Como 1907,Serie C,MID,true
+Angelo,Calfapietra,Como 1907,Serie C,MID,true
+Michela,Mj Mariani,Como 1907,Serie C,MID,true
+Michele,Ambrosino,Como 1907,Serie C,MID,true
+Ivan,Villacres,Como 1907,Serie C,DEF,true
+Alessandro,Aiello,Como 1907,Serie C,FWD,true
+Cristian,Scalambra,Como 1907,Serie C,DEF,true
+Mariano,Cammarota,Como 1907,Serie C,MID,true
+Tommaso,Altomare,Como 1907,Serie C,FWD,true
+Danilo,Alinari,Como 1907,Serie C,DEF,true
+Alessio,Balconi,Como 1907,Serie C,MID,true
+Daniele,Polignone,Como 1907,Serie C,DEF,true
+Federico,Mecacci,Como 1907,Serie C,MID,true
+Gianluca,Grollo,Como 1907,Serie C,GK,true
+Rocco,Delle Fave,Modena,Serie C,MID,true
+Max,Maldini,Modena,Serie C,DEF,true
+Angelo,Antonio Costantino,Modena,Serie C,MID,true
+Girolamo,Sgarzaviola,Modena,Serie C,MID,true
+Daniele,Goffi,Modena,Serie C,DEF,true
+Jiokopoco,Majioco,Modena,Serie C,DEF,true
+Daniele,Marvuglia,Modena,Serie C,FWD,true
+Fabio,Sparta,Modena,Serie C,GK,true
+Edoardo,Marzulli,Modena,Serie C,DEF,true
+Stacchio,Stax Azzilonna,Modena,Serie C,MID,true
+Valerio,Pace,Modena,Serie C,DEF,true
+Miky,Delle Fave,Modena,Serie C,MID,true
+Speppo,Tretretre,Modena,Serie C,MID,true
+Alessio,Fossen,Modena,Serie C,MID,true
+Gianluca,Santonastaso,Padova,Serie C,MID,true
+Alessandro,Ferrante,Padova,Serie C,MID,true
+Cristian,Torregrossa,Padova,Serie C,FWD,true
+Emanuele,Criscuolo,Padova,Serie C,MID,true
+Noah,Vandenberg,Padova,Serie C,MID,true
+Alessandro,Raimondo,Padova,Serie C,MID,true
+Antonio,Raffio,Padova,Serie C,DEF,true
+Stefano,Serra,Padova,Serie C,DEF,true
+Javier,Ernesto Petracchi,Padova,Serie C,DEF,true
+Giovanni,Bernardini,Padova,Serie C,DEF,true
+Sebastiano,Alan Andolina,Padova,Serie C,MID,true
+Michelangelo,Cioce,Padova,Serie C,MID,true
+Marco,Movida,Padova,Serie C,GK,true
+Marco,Slim Fanti,Padova,Serie C,DEF,true
+Mario,Musmarra,Padova,Serie C,DEF,true
+Sebastiano,Donnarumma,Padova,Serie C,MID,true
+Fernando,Giuli,Parma Calcio 1913,Serie B,MID,true
+Giuseppe,Sansone,Piacenza,Serie C,FWD,true
+Tancredi,Atlante,Piacenza,Serie C,MID,true
+Lautaro,Calabria,Piacenza,Serie C,MID,true
+Mikel,Tractor,Piacenza,Serie C,MID,true
+Hyperion,Cronos,Piacenza,Serie C,DEF,true
+Ylia,Volkov,Piacenza,Serie C,DEF,true
+Tano,Cunsolo,Piacenza,Serie C,DEF,true
+Matteo,Bonora,Piacenza,Serie C,MID,true
+Marco,Bortolotti,Piacenza,Serie C,MID,true
+Nicola,Occhiali,Piacenza,Serie C,MID,true
+Angelo,Fusco,Piacenza,Serie C,GK,true
+Diego,Paesano,Piacenza,Serie C,DEF,true
+Berio,Berio,Piacenza,Serie C,GK,true
+Stefano,Castaldi,Piacenza,Serie C,FWD,true
+Marco,Bussolari,Piacenza,Serie C,DEF,true
+Enrico,Bussolari,Piacenza,Serie C,DEF,true
+João,Firpinho,Piacenza,Serie C,MID,true
+Alexis,Blanco,RavennaZ,Serie A,MID,true
+Francesco,Moretti,Benevento,Serie C,MID,true
+Luca,Mariani,Benevento,Serie C,DEF,true
+Francesco,Amadori,Benevento,Serie C,DEF,true
+Niccolò,Decrì,Benevento,Serie C,DEF,true
+Oriana,Vedelago,Benevento,Serie C,DEF,true
+Andrea,Strippoli,Benevento,Serie C,FWD,true
+Claudio,Trapolino,Benevento,Serie C,MID,true
+Sandro,Stefanati,Benevento,Serie C,MID,true
+Marco,Moretti,Benevento,Serie C,DEF,true
+Andrea,Mengarelli,Benevento,Serie C,GK,true
+Andrea,Losapio,Benevento,Serie C,FWD,true
+Nunzio,Palmese,Benevento,Serie C,MID,true
+Carmine,Palmese,Benevento,Serie C,MID,true
+Robertino,Portierino,Benevento,Serie C,GK,true
+Fausto,Carotenuto,Benevento,Serie C,MID,true
+William,Martin,Benevento,Serie C,MID,true
+Alessandro,Valerio,Benevento,Serie C,MID,true
+Lukas,Sørgensen,Benevento,Serie C,DEF,true
+Juan,Quevedo,Frosinone,Serie C,MID,true
+Lorenzo,Paniccia,Frosinone,Serie C,MID,true
+Riccardo,Valentino,Frosinone,Serie C,FWD,true
+Vincenzo,De Pascale,Frosinone,Serie C,MID,true
+Simone,Palermo,Frosinone,Serie C,FWD,true
+Claudio,Pipitone,Frosinone,Serie C,GK,true
+Valerio,Airò Rochelmeyer,Frosinone,Serie C,MID,true
+Gianmarco,Maddaluna,Frosinone,Serie C,MID,true
+Matteo,Puddu,Frosinone,Serie C,MID,true
+Daniele,Paglia,Frosinone,Serie C,DEF,true
+Lorenzo,Mezzadri,Frosinone,Serie C,MID,true
+Simone,Giuditta De Franco,Frosinone,Serie C,DEF,true
+Lele,Barrabravas,Frosinone,Serie C,MID,true
+Mauro,Magnani,Frosinone,Serie C,DEF,true
+Erminio,Scardinaparete,Frosinone,Serie C,DEF,true
+Giuseppe,Gambardella,Frosinone,Serie C,DEF,true
+Matteo,Trementozzi,Frosinone,Serie C,MID,true
+Sandrinho,Sandrinho,A.S. Livorno Calcio,Serie C,DEF,true
+Francesco,Tonale,A.S. Livorno Calcio,Serie C,DEF,true
+Umberto,Rosamilia,A.S. Livorno Calcio,Serie C,DEF,true
+Stefano,Stranges,A.S. Livorno Calcio,Serie C,DEF,true
+Jonny,Quelpo,A.S. Livorno Calcio,Serie C,DEF,true
+Nicola,Casanova,A.S. Livorno Calcio,Serie C,MID,true
+Luca,Ferrario,A.S. Livorno Calcio,Serie C,MID,true
+Mino,Lako,A.S. Livorno Calcio,Serie C,MID,true
+Matteo,Tumminieri,A.S. Livorno Calcio,Serie C,MID,true
+Eric,Le King,A.S. Livorno Calcio,Serie C,MID,true
+Christian,Camarda,A.S. Livorno Calcio,Serie C,MID,true
+Andrea,Chiti,A.S. Livorno Calcio,Serie C,MID,true
+Pedro,Rossato,A.S. Livorno Calcio,Serie C,FWD,true
+Kankero,Davidenko,A.S. Livorno Calcio,Serie C,GK,true
+Roberto,Anelli,A.S. Livorno Calcio,Serie C,DEF,true
+Luca,Vigiani,A.S. Livorno Calcio,Serie C,MID,true
+Santiago,Fuentes,Pisa,Serie C,DEF,true
+Dino,Castagna,Pisa,Serie C,MID,true
+Raffaele,Russo,Pisa,Serie C,FWD,true
+Yakoub,Andarūzī,Pisa,Serie C,MID,true
+Francesco,Cristiano,Pisa,Serie C,MID,true
+Igor,Tudor,Pisa,Serie C,DEF,true
+Raffaele,Purple,Pisa,Serie C,MID,true
+Ramzy,Ben Abderrahman,Pisa,Serie C,DEF,true
+Fidenzio,Mastrota,Pisa,Serie C,MID,true
+Daniel,Thanasi,Pisa,Serie C,DEF,true
+Alessandro,Castagna,Pisa,Serie C,MID,true
+Pasquale,Pezzella,Pisa,Serie C,MID,true
+Tommy,Dodo,Pisa,Serie C,GK,true
+Cristina,Bozzelli,Taranto Football Club 1927,Serie C,GK,true
+Matteo,Cuffari,Taranto Football Club 1927,Serie C,DEF,true
+Mattia,De Simone,Taranto Football Club 1927,Serie C,DEF,true
+Emilio,Evangelista,Taranto Football Club 1927,Serie C,MID,true
+Alessandro,Russo,Taranto Football Club 1927,Serie C,MID,true
+Alessio,Fagiolini,Taranto Football Club 1927,Serie C,MID,true
+Domenico,Esposito,Taranto Football Club 1927,Serie C,MID,true
+Federica,Sacchetti,Taranto Football Club 1927,Serie C,MID,true
+Marino,Gioiosa,Taranto Football Club 1927,Serie C,MID,true
+Denny,Paganini,Taranto Football Club 1927,Serie C,DEF,true
+Lucio,Astolfi,Taranto Football Club 1927,Serie C,DEF,true
+Miriam,Buggiani,Taranto Football Club 1927,Serie C,DEF,true
+Andrea,Lorenzetti,Taranto Football Club 1927,Serie C,FWD,true
+Alistair,McCormick,Taranto Football Club 1927,Serie C,DEF,true
+Alessandro,Caprani,Taranto Football Club 1927,Serie C,DEF,true
+Mongo,Aurelio,Taranto Football Club 1927,Serie C,GK,true
+Erica,Di Sante,Taranto Football Club 1927,Serie C,DEF,true
+Diego,Lazzari,ACR Messina,Serie C,MID,true
+Davide,Ardizzoni,ACR Messina,Serie C,FWD,true
+Giacomo,Bonazza,ACR Messina,Serie C,DEF,true
+Manuel,Guernelli,ACR Messina,Serie C,DEF,true
+Simone,Bonora,ACR Messina,Serie C,MID,true
+Axel,Pastrellacculi,ACR Messina,Serie C,DEF,true
+Maurizio,Lombardi,ACR Messina,Serie C,DEF,true
+Leonardo,Ronchi,ACR Messina,Serie C,MID,true
+Riccardo,Allokks,ACR Messina,Serie C,FWD,true
+Luca,Coladonato,ACR Messina,Serie C,MID,true
+Matt,Valdemaro,ACR Messina,Serie C,DEF,true
+Tommaso,Bini,ACR Messina,Serie C,MID,true
+Tso,Mi,ACR Messina,Serie C,MID,true
+Patrizio,Coccia,ACR Messina,Serie C,GK,true
+Stefano,Denaro,ACR Messina,Serie C,DEF,true
+Giacomo,Sciuto,Cervia 1920,Serie C,DEF,true
+Valerio,Arnone,Cervia 1920,Serie C,DEF,true
+Giuseppe,Tomasello,Cervia 1920,Serie C,DEF,true
+Fabio,Feo,Cervia 1920,Serie C,DEF,true
+Gabriele,Torn,Cervia 1920,Serie C,DEF,true
+Adrian,Cronauer,Cervia 1920,Serie C,MID,true
+Alessio,La Regina,Cervia 1920,Serie C,FWD,true
+Kevin,Casadei,Cervia 1920,Serie C,DEF,true
+Alessio,Garrinella,Cervia 1920,Serie C,DEF,true
+Andrea,Azzolini,Cervia 1920,Serie C,MID,true
+Francesco,Zazzà Garcea,Cervia 1920,Serie C,MID,true
+Orso,Roccadorso,Cervia 1920,Serie C,GK,true
+Matteo,Teuz Garcea,Cervia 1920,Serie C,DEF,true
+Salvatore,Trivisani,Cervia 1920,Serie C,FWD,true
+Dominic,Bartòlòmeusson,Cervia 1920,Serie C,MID,true
+Rafael,Vignoni,Cervia 1920,Serie C,MID,true
+Francesco,Caccia,Cervia 1920,Serie C,GK,true
+Tizio,Caio Da Silva Lima Nascimento,Cervia 1920,Serie C,MID,true
+Alex,Lazzarin,Cervia 1920,Serie C,MID,true
+Carlo,Marchiani,Cervia 1920,Serie C,MID,true
+Filippo,Ciaramitaro,Cervia 1920,Serie C,MID,true
+Emanuele,Tempesta,S.S. Longobarda,Serie C,DEF,true
+Laura,Grassadonia,S.S. Longobarda,Serie C,DEF,true
+Giuseppe,Amato,S.S. Longobarda,Serie C,MID,true
+Dario,Marino,S.S. Longobarda,Serie C,DEF,true
+Daniele,Romano,S.S. Longobarda,Serie C,DEF,true
+Marco,Jack Nanni,S.S. Longobarda,Serie C,DEF,true
+Massimo,Fabretti Marchetti,S.S. Longobarda,Serie C,FWD,true
+Simone,Lo Mastro,S.S. Longobarda,Serie C,MID,true
+Nello,Falcone,S.S. Longobarda,Serie C,DEF,true
+Alessandro,Frangiosa,S.S. Longobarda,Serie C,MID,true
+Luca,Comunale,S.S. Longobarda,Serie C,DEF,true
+Marco,D'Annibale,S.S. Longobarda,Serie C,MID,true
+Roberto,Sferruzzi,S.S. Longobarda,Serie C,DEF,true
+Daniele,Lo Mastro,S.S. Longobarda,Serie C,MID,true
+Domenico,Salce,S.S. Longobarda,Serie C,MID,true
+Dante,DC,S.S. Longobarda,Serie C,DEF,true
+Daniele,Ravanini,S.S. Longobarda,Serie C,GK,true
+Michele,Cavaliere,S.S. Longobarda,Serie C,MID,true
+Francesco,Sansone,A. C. Garda,Serie B,MID,true
+Giovanni,Fisichella,A. C. Garda,Serie B,DEF,true

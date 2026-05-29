@@ -83,8 +83,7 @@ public class AdminLeagueResource {
                     "error", "Lega con partite o scommesse collegate: rimuovile prima di eliminare la lega")).build();
         }
 
-        // Elimina le regole e le squadre collegate, poi la lega
-        Rule.delete("leagueId", id);
+        // Elimina le squadre collegate, poi la lega
         Team.delete("leagueId", id);
         l.delete();
 

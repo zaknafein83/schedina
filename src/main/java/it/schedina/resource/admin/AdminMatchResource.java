@@ -27,24 +27,27 @@ public class AdminMatchResource {
         Team home = Team.findById(m.homeTeamId);
         Team away = Team.findById(m.awayTeamId);
         return MatchDto.MatchResponse.from(m,
-                home != null ? home.name : "?",
-                away != null ? away.name : "?");
+                home != null ? home.name : "?", away != null ? away.name : "?");
     }
 
     @GET
     @Transactional
     public List<MatchDto.MatchResponse> list(
             @HeaderParam("Authorization") String token,
+            @QueryParam("giornataId") Long giornataId,
             @QueryParam("leagueId") Long leagueId) {
         auth.requireAdminOrMod(token);
-        var all = leagueId != null ? Match.findByLeague(leagueId) : Match.<Match>listAll();
+        List<Match> all;
+        if (giornataId != null) all = Match.findByGiornata(giornataId);
+        else if (leagueId != null) all = Match.findByLeague(leagueId);
+        else all = Match.listAll();
         return all.stream().map(this::enrich).toList();
     }
 
     @POST
     @Transactional
     public Response create(@HeaderParam("Authorization") String token, @Valid MatchDto.MatchRequest req) {
-        auth.requireAdmin(token);
+        auth.requireAdminOrMod(token);
         if (req.homeTeamId().equals(req.awayTeamId())) {
             return Response.status(400).entity(Map.of("error", "Casa e ospite non possono essere la stessa squadra")).build();
         }
@@ -54,13 +57,15 @@ public class AdminMatchResource {
             return Response.status(404).entity(Map.of("error", "Squadra non trovata")).build();
         }
         if (!home.leagueId.equals(away.leagueId)) {
-            return Response.status(400).entity(Map.of("error", "Le due squadre devono appartenere alla stessa lega")).build();
+            return Response.status(400).entity(Map.of("error", "Le due squadre devono appartenere alla stessa divisione")).build();
         }
         Match m = new Match();
         m.homeTeamId = req.homeTeamId();
         m.awayTeamId = req.awayTeamId();
         m.leagueId = home.leagueId;
+        m.giornataId = req.giornataId();
         m.scheduledAt = req.scheduledAt();
+        if (req.overUnderLine() != null) m.overUnderLine = req.overUnderLine();
         m.persist();
         return Response.status(201).entity(enrich(m)).build();
     }
@@ -78,28 +83,26 @@ public class AdminMatchResource {
     @PATCH
     @Path("/{id}")
     @Transactional
-    public MatchDto.MatchResponse update(
-            @HeaderParam("Authorization") String token,
-            @PathParam("id") Long id,
-            MatchDto.MatchRequest req) {
-        auth.requireAdmin(token);
+    public MatchDto.MatchResponse update(@HeaderParam("Authorization") String token,
+            @PathParam("id") Long id, MatchDto.MatchRequest req) {
+        auth.requireAdminOrMod(token);
         Match m = Match.findById(id);
         if (m == null) throw new NotFoundException();
         if (req.homeTeamId() != null) m.homeTeamId = req.homeTeamId();
         if (req.awayTeamId() != null) m.awayTeamId = req.awayTeamId();
+        if (req.giornataId() != null) m.giornataId = req.giornataId();
         if (req.scheduledAt() != null) m.scheduledAt = req.scheduledAt();
+        if (req.overUnderLine() != null) m.overUnderLine = req.overUnderLine();
         m.persist();
         return enrich(m);
     }
 
-    /** Inserisce il punteggio reale e risolve automaticamente le scommesse AUTO collegate. */
+    /** Inserisce il punteggio. Gli esiti 1X2/U-O della schedina si calcolano all'elaborazione della giornata; qui si risolvono le eventuali scommesse AUTO (gol/no gol) della partita. */
     @PUT
     @Path("/{id}/result")
     @Transactional
-    public Response setResult(
-            @HeaderParam("Authorization") String token,
-            @PathParam("id") Long id,
-            @Valid MatchDto.MatchResultRequest req) {
+    public Response setResult(@HeaderParam("Authorization") String token,
+            @PathParam("id") Long id, @Valid MatchDto.MatchResultRequest req) {
         auth.requireAdminOrMod(token);
         if (req.homeScore() < 0 || req.awayScore() < 0) {
             return Response.status(400).entity(Map.of("error", "I punteggi non possono essere negativi")).build();
@@ -107,7 +110,7 @@ public class AdminMatchResource {
         Match m = Match.findById(id);
         if (m == null) throw new NotFoundException();
         if (m.status == Match.Status.VALIDATED) {
-            return Response.status(400).entity(Map.of("error", "Risultato già validato, non modificabile")).build();
+            return Response.status(400).entity(Map.of("error", "Risultato già validato")).build();
         }
         m.homeScore = req.homeScore();
         m.awayScore = req.awayScore();
@@ -136,7 +139,7 @@ public class AdminMatchResource {
     @Path("/{id}")
     @Transactional
     public Response delete(@HeaderParam("Authorization") String token, @PathParam("id") Long id) {
-        auth.requireAdmin(token);
+        auth.requireAdminOrMod(token);
         Match m = Match.findById(id);
         if (m == null) throw new NotFoundException();
         m.delete();

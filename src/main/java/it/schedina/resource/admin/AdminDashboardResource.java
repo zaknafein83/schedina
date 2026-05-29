@@ -21,25 +21,22 @@ public class AdminDashboardResource {
     public Response dashboard(@HeaderParam("Authorization") String token) {
         auth.requireAdmin(token);
 
-        long totalUsers  = User.count();
+        long totalUsers = User.count();
         long activeUsers = User.count("isActive", true);
-
-        long totalSchedine   = Schedina.count();
+        long totalSchedine = Schedina.count();
         long winningSchedine = Schedina.count("status", Schedina.Status.WINNING);
-
-        long openConcorsi      = Concorso.count("status", Concorso.Status.OPEN);
-        long processedConcorsi = Concorso.count("status", Concorso.Status.PROCESSED);
-
+        long openGiornate = Giornata.count("status", Giornata.Status.OPEN);
+        long processedGiornate = Giornata.count("status", Giornata.Status.PROCESSED);
         long openBets = Scommessa.count("status", Scommessa.Status.OPEN);
-
-        long notifSent   = Notification.count("status", Notification.Status.SENT);
+        long giocate = Giocata.count();
+        long notifSent = Notification.count("status", Notification.Status.SENT);
         long notifFailed = Notification.count("status", Notification.Status.FAILED);
 
         return Response.ok(Map.of(
                 "users",     Map.of("total", totalUsers, "active", activeUsers),
                 "schedine",  Map.of("total", totalSchedine, "winning", winningSchedine),
-                "concorsi",  Map.of("open", openConcorsi, "processed", processedConcorsi),
-                "openBets",  openBets,
+                "giornate",  Map.of("open", openGiornate, "processed", processedGiornate),
+                "scommesse", Map.of("open", openBets, "giocate", giocate),
                 "notifications", Map.of("sent", notifSent, "failed", notifFailed)
         )).build();
     }

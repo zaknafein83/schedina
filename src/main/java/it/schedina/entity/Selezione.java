@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 /**
- * Singola scelta di una {@link Schedina}: punta a una {@link Scommessa} con una choice singola.
+ * Pronostico di una {@link Schedina} su una partita: 1X2 + Under/Over (scelta singola ciascuno).
  */
 @Entity
 @Table(name = "schedina_selezioni")
@@ -19,15 +19,22 @@ public class Selezione extends PanacheEntityBase {
     @Column(name = "schedina_id", nullable = false)
     public Long schedinaId;
 
-    @Column(name = "bet_id", nullable = false)
-    public Long betId;
+    @Column(name = "match_id", nullable = false)
+    public Long matchId;
 
-    /** Riferimento dell'opzione scelta (token, teamId o playerId). */
-    @Column(name = "choice_ref", nullable = false, length = 50)
-    public String choiceRef;
+    /** "1" / "X" / "2" */
+    @Column(name = "choice_1x2", nullable = false, length = 1)
+    public String choice1x2;
 
-    @Column(name = "is_correct")
-    public Boolean isCorrect;
+    /** "U" / "O" */
+    @Column(name = "choice_uo", nullable = false, length = 1)
+    public String choiceUo;
+
+    @Column(name = "correct_1x2")
+    public Boolean correct1x2;
+
+    @Column(name = "correct_uo")
+    public Boolean correctUo;
 
     public static List<Selezione> findBySchedina(Long schedinaId) {
         return find("schedinaId", schedinaId).list();
