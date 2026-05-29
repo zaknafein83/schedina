@@ -1,7 +1,7 @@
 package it.schedina.resource.admin;
 
 import it.schedina.dto.UserDto;
-import it.schedina.entity.Coupon;
+import it.schedina.entity.Schedina;
 import it.schedina.entity.User;
 import it.schedina.service.AuthService;
 import jakarta.inject.Inject;
@@ -74,8 +74,8 @@ public class AdminUserResource {
         auth.requireAdmin(token);
         User u = User.findById(id);
         if (u == null) throw new NotFoundException();
-        long total = Coupon.count("userId", id);
-        long winning = Coupon.count("userId = ?1 and status = ?2", id, Coupon.Status.WINNING);
-        return Response.ok(Map.of("userId", id, "totalCoupons", total, "winningCoupons", winning)).build();
+        long total = Schedina.count("userId", id);
+        long winning = Schedina.count("userId = ?1 and status = ?2", id, Schedina.Status.WINNING);
+        return Response.ok(Map.of("userId", id, "totalSchedine", total, "winningSchedine", winning)).build();
     }
 }

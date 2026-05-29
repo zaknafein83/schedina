@@ -76,26 +76,16 @@ public class AdminLeagueResource {
         League l = League.findById(id);
         if (l == null) throw new NotFoundException();
 
-        // 1. Elimina concorsi e relativi dati (partite, schedine, previsioni)
-        List<Contest> contests = Contest.<Contest>find("leagueId", id).list();
-        for (Contest c : contests) {
-            List<Match> matches = Match.findByContest(c.id);
-            for (Match m : matches) m.delete();
-            List<Coupon> coupons = Coupon.<Coupon>find("contestId", c.id).list();
-            for (Coupon coupon : coupons) {
-                CouponPrediction.delete("couponId", coupon.id);
-                coupon.delete();
-            }
-            c.delete();
+        // Rifiuta l'eliminazione se restano scommesse o partite della lega referenziate
+        // (vanno rimossi prima i concorsi/scommesse collegati).
+        if (Scommessa.count("leagueId", id) > 0 || Match.count("leagueId", id) > 0) {
+            return Response.status(409).entity(Map.of(
+                    "error", "Lega con partite o scommesse collegate: rimuovile prima di eliminare la lega")).build();
         }
 
-        // 2. Elimina le squadre collegate
-        Team.delete("leagueId", id);
-
-        // 3. Elimina le regole collegate
+        // Elimina le regole e le squadre collegate, poi la lega
         Rule.delete("leagueId", id);
-
-        // 4. Elimina la lega
+        Team.delete("leagueId", id);
         l.delete();
 
         return Response.noContent().build();

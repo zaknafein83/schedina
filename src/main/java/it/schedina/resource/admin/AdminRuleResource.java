@@ -32,13 +32,13 @@ public class AdminRuleResource {
     @Transactional
     public Response create(@HeaderParam("Authorization") String token, @Valid RuleDto.RuleRequest req) {
         auth.requireAdmin(token);
-        if (League.findById(req.leagueId()) == null) {
+        if (req.leagueId() != null && League.findById(req.leagueId()) == null) {
             return Response.status(404).entity(Map.of("error", "Lega non trovata")).build();
         }
         for (int t : req.winningThresholds()) {
-            if (t > req.requiredMatches()) {
+            if (t > req.requiredBets()) {
                 return Response.status(400)
-                        .entity(Map.of("error", "Soglia " + t + " supera il numero di partite richieste"))
+                        .entity(Map.of("error", "Soglia " + t + " supera il numero di scommesse richieste"))
                         .build();
             }
         }
@@ -46,11 +46,9 @@ public class AdminRuleResource {
         r.name = req.name();
         r.description = req.description();
         r.leagueId = req.leagueId();
-        r.requiredMatches = req.requiredMatches();
+        r.requiredBets = req.requiredBets();
         r.winningThresholds = req.winningThresholds();
-        r.maxCouponsPerUser = req.maxCouponsPerUser();
-        r.maxDoubles = req.maxDoubles();
-        r.maxTriples = req.maxTriples();
+        r.maxSchedinePerUser = req.maxSchedinePerUser();
         if (req.fullCompletionRequired() != null) r.fullCompletionRequired = req.fullCompletionRequired();
         if (req.isActive() != null) r.isActive = req.isActive();
         r.persist();
@@ -79,11 +77,10 @@ public class AdminRuleResource {
         if (r == null) throw new NotFoundException();
         if (req.name() != null) r.name = req.name();
         if (req.description() != null) r.description = req.description();
-        if (req.requiredMatches() > 0) r.requiredMatches = req.requiredMatches();
+        if (req.leagueId() != null) r.leagueId = req.leagueId();
+        if (req.requiredBets() > 0) r.requiredBets = req.requiredBets();
         if (req.winningThresholds() != null) r.winningThresholds = req.winningThresholds();
-        if (req.maxCouponsPerUser() != null) r.maxCouponsPerUser = req.maxCouponsPerUser();
-        r.maxDoubles = req.maxDoubles();
-        r.maxTriples = req.maxTriples();
+        if (req.maxSchedinePerUser() != null) r.maxSchedinePerUser = req.maxSchedinePerUser();
         if (req.fullCompletionRequired() != null) r.fullCompletionRequired = req.fullCompletionRequired();
         if (req.isActive() != null) r.isActive = req.isActive();
         r.persist();

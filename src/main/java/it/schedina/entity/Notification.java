@@ -19,8 +19,8 @@ public class Notification extends PanacheEntityBase {
     @Column(name = "user_id", nullable = false)
     public Long userId;
 
-    @Column(name = "coupon_id", nullable = false)
-    public Long couponId;
+    @Column(name = "schedina_id", nullable = false)
+    public Long schedinaId;
 
     @Column(nullable = false)
     public int threshold;
@@ -45,8 +45,8 @@ public class Notification extends PanacheEntityBase {
         return find("userId", userId).list();
     }
 
-    public static boolean alreadyNotified(Long couponId, int threshold) {
-        return count("couponId = ?1 and threshold = ?2 and status != ?3",
-                couponId, threshold, Status.FAILED) > 0;
+    public static boolean alreadyNotified(Long schedinaId, int threshold) {
+        return count("schedinaId = ?1 and threshold = ?2 and status != ?3",
+                schedinaId, threshold, Status.FAILED) > 0;
     }
 }

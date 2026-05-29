@@ -9,12 +9,12 @@ public final class NotificationDto {
     private NotificationDto() {}
 
     public record NotificationResponse(
-            Long id, Long userId, Long couponId, int threshold,
+            Long id, Long userId, Long schedinaId, int threshold,
             String message, Notification.Status status,
             LocalDateTime sentAt, LocalDateTime readAt, LocalDateTime createdAt
     ) {
         public static NotificationResponse from(Notification n) {
-            return new NotificationResponse(n.id, n.userId, n.couponId, n.threshold,
+            return new NotificationResponse(n.id, n.userId, n.schedinaId, n.threshold,
                     n.message, n.status, n.sentAt, n.readAt, n.createdAt);
         }
     }

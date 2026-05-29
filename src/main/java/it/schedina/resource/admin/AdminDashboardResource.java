@@ -24,22 +24,22 @@ public class AdminDashboardResource {
         long totalUsers  = User.count();
         long activeUsers = User.count("isActive", true);
 
-        long totalCoupons   = Coupon.count();
-        long winningCoupons = Coupon.count("status", Coupon.Status.WINNING);
+        long totalSchedine   = Schedina.count();
+        long winningSchedine = Schedina.count("status", Schedina.Status.WINNING);
 
-        long openContests      = Contest.count("status", Contest.Status.OPEN);
-        long processedContests = Contest.count("status", Contest.Status.PROCESSED);
+        long openConcorsi      = Concorso.count("status", Concorso.Status.OPEN);
+        long processedConcorsi = Concorso.count("status", Concorso.Status.PROCESSED);
 
-        long matchesWithoutResult = Match.count("officialResult is null");
+        long openBets = Scommessa.count("status", Scommessa.Status.OPEN);
 
         long notifSent   = Notification.count("status", Notification.Status.SENT);
         long notifFailed = Notification.count("status", Notification.Status.FAILED);
 
         return Response.ok(Map.of(
-                "users",    Map.of("total", totalUsers, "active", activeUsers),
-                "coupons",  Map.of("total", totalCoupons, "winning", winningCoupons),
-                "contests", Map.of("open", openContests, "processed", processedContests),
-                "matchesWithoutResult", matchesWithoutResult,
+                "users",     Map.of("total", totalUsers, "active", activeUsers),
+                "schedine",  Map.of("total", totalSchedine, "winning", winningSchedine),
+                "concorsi",  Map.of("open", openConcorsi, "processed", processedConcorsi),
+                "openBets",  openBets,
                 "notifications", Map.of("sent", notifSent, "failed", notifFailed)
         )).build();
     }

@@ -20,25 +20,21 @@ public class Rule extends PanacheEntityBase {
     @Column(columnDefinition = "text")
     public String description;
 
-    @Column(name = "league_id", nullable = false)
+    /** Lega di riferimento. Opzionale: i concorsi stagionali non sono legati a una sola lega. */
+    @Column(name = "league_id")
     public Long leagueId;
 
-    @Column(name = "required_matches", nullable = false)
-    public int requiredMatches;
+    /** Quante scommesse deve coprire la schedina. */
+    @Column(name = "required_bets", nullable = false)
+    public int requiredBets;
 
-    /** Configurabili da backoffice – es. [12, 13] */
+    /** Punteggi vincenti (match esatto), es. [12, 13]. */
     @Convert(converter = JsonListConverters.IntList.class)
     @Column(name = "winning_thresholds", nullable = false, columnDefinition = "text")
     public List<Integer> winningThresholds = new ArrayList<>();
 
-    @Column(name = "max_coupons_per_user")
-    public Integer maxCouponsPerUser;
-
-    @Column(name = "max_doubles", nullable = false)
-    public int maxDoubles = 0;
-
-    @Column(name = "max_triples", nullable = false)
-    public int maxTriples = 0;
+    @Column(name = "max_schedine_per_user")
+    public Integer maxSchedinePerUser;
 
     @Column(name = "full_completion_required", nullable = false)
     public boolean fullCompletionRequired = true;
