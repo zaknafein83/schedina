@@ -151,9 +151,11 @@ Netto: **2 engine → 1**, **~10 entità → ~5**.
 > Approccio: **cutover pulito**. Non servono migrazioni di conversione dati; si rimpiazza
 > lo schema di gioco con una migrazione forward-only, preservando utenti e anagrafiche.
 >
-> **Avanzamento:** Fasi 0–4 ✅ fatte sul branch `feat/redesign-scommesse-schedine`.
-> Fase 6 ✅ test e2e scritti e verdi (`mvn test` su Postgres reale, 2/2 pass).
-> Fase 5 (frontend) ⬜ da fare. Deploy del cutover ⬜ da fare.
+> **Avanzamento:** Fasi 0–4 ✅ (backend, branch `feat/redesign-scommesse-schedine`).
+> Fase 6 ✅ test backend verdi (`mvn test`, 2/2).
+> Fase 5 ✅ frontend riallineato (branch FE `feat/redesign-scommesse`), build verde;
+> e2e Playwright full-stack verdi (15/15) contro `docker-compose.test.yml`.
+> Deploy del cutover ⬜ da fare (merge branch BE+FE → la V17 azzera lo schema di gioco in prod).
 
 ### Fase 0 — Verifica DB prod (rapida) ✅ FATTA (2026-05-29)
 - Esito: DB **privo di dati reali**. Solo seed: `users`=4 (V3/V6/V7), `seasons`=1 e
