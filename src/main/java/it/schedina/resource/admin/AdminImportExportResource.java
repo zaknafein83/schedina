@@ -10,7 +10,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,14 +58,6 @@ public class AdminImportExportResource {
     }
 
     @GET
-    @Path("/export/contests")
-    @Transactional
-    public Response exportContests(@HeaderParam("Authorization") String token) {
-        auth.requireAdmin(token);
-        return Response.ok(Contest.<Contest>listAll().stream().map(this::contestToMap).toList()).build();
-    }
-
-    @GET
     @Path("/export/all")
     @Transactional
     public Response exportAll(@HeaderParam("Authorization") String token) {
@@ -76,7 +67,6 @@ public class AdminImportExportResource {
         all.put("teams",    Team.<Team>listAll().stream().map(this::teamToMap).toList());
         all.put("players",  Player.<Player>listAll().stream().map(this::playerToMap).toList());
         all.put("rules",    Rule.<Rule>listAll().stream().map(this::ruleToMap).toList());
-        all.put("contests", Contest.<Contest>listAll().stream().map(this::contestToMap).toList());
         return Response.ok(all).build();
     }
 
@@ -144,7 +134,6 @@ public class AdminImportExportResource {
             String lastName  = row.get("lastName");
             if (firstName == null || firstName.isBlank() || lastName == null || lastName.isBlank()) continue;
             Long teamId = resolveTeamId(row);
-            // upsert per (firstName, lastName, teamId)
             Player p;
             if (teamId != null) {
                 p = Player.<Player>find("firstName = ?1 and lastName = ?2 and teamId = ?3", firstName, lastName, teamId).firstResult();
@@ -176,52 +165,20 @@ public class AdminImportExportResource {
         for (Map<String, String> row : rows) {
             String name = row.get("name");
             if (name == null || name.isBlank()) continue;
-            Long leagueId = resolveLeagueId(row);
-            if (leagueId == null) continue;
             Rule r = Rule.<Rule>find("name", name).firstResult();
             if (r == null) r = new Rule();
             r.name     = name;
-            r.leagueId = leagueId;
-            if (row.containsKey("description"))          r.description          = row.get("description");
-            if (hasValue(row, "requiredMatches"))         r.requiredMatches      = Integer.parseInt(row.get("requiredMatches"));
-            if (hasValue(row, "winningThresholds"))       r.winningThresholds    = parseIntList(row.get("winningThresholds"));
-            if (hasValue(row, "maxDoubles"))              r.maxDoubles           = Integer.parseInt(row.get("maxDoubles"));
-            if (hasValue(row, "maxTriples"))              r.maxTriples           = Integer.parseInt(row.get("maxTriples"));
-            if (hasValue(row, "maxCouponsPerUser"))       r.maxCouponsPerUser    = Integer.parseInt(row.get("maxCouponsPerUser"));
+            r.leagueId = resolveLeagueId(row);
+            if (row.containsKey("description"))            r.description           = row.get("description");
+            if (hasValue(row, "requiredBets"))            r.requiredBets          = Integer.parseInt(row.get("requiredBets"));
+            if (hasValue(row, "winningThresholds"))       r.winningThresholds     = parseIntList(row.get("winningThresholds"));
+            if (hasValue(row, "maxSchedinePerUser"))      r.maxSchedinePerUser    = Integer.parseInt(row.get("maxSchedinePerUser"));
             if (row.containsKey("fullCompletionRequired"))r.fullCompletionRequired = Boolean.parseBoolean(row.get("fullCompletionRequired"));
-            if (row.containsKey("isActive"))             r.isActive             = Boolean.parseBoolean(row.get("isActive"));
+            if (row.containsKey("isActive"))              r.isActive              = Boolean.parseBoolean(row.get("isActive"));
             r.persist();
             count++;
         }
         return Response.ok(Map.of("imported", count, "entity", "rules")).build();
-    }
-
-    @POST
-    @Path("/import/contests")
-    @Transactional
-    public Response importContests(@HeaderParam("Authorization") String token, String body) {
-        auth.requireAdmin(token);
-        List<Map<String, String>> rows = parseBody(body);
-        int count = 0;
-        for (Map<String, String> row : rows) {
-            String name = row.get("name");
-            if (name == null || name.isBlank()) continue;
-            Long leagueId = resolveLeagueId(row);
-            Long ruleId   = resolveRuleId(row);
-            if (leagueId == null || ruleId == null) continue;
-            Contest c = Contest.<Contest>find("name", name).firstResult();
-            if (c == null) c = new Contest();
-            c.name     = name;
-            c.leagueId = leagueId;
-            c.ruleId   = ruleId;
-            if (row.containsKey("description")) c.description = row.get("description");
-            if (hasValue(row, "openAt"))  c.openAt  = LocalDateTime.parse(normalizeDateTime(row.get("openAt")));
-            if (hasValue(row, "closeAt")) c.closeAt = LocalDateTime.parse(normalizeDateTime(row.get("closeAt")));
-            if (c.status == null) c.status = Contest.Status.DRAFT;
-            c.persist();
-            count++;
-        }
-        return Response.ok(Map.of("imported", count, "entity", "contests")).build();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -262,25 +219,14 @@ public class AdminImportExportResource {
     }
 
     private Map<String, Object> ruleToMap(Rule r) {
-        League l = League.findById(r.leagueId);
+        League l = r.leagueId != null ? League.findById(r.leagueId) : null;
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("id", r.id); m.put("name", r.name); m.put("description", r.description);
         m.put("leagueId", r.leagueId); m.put("leagueName", l != null ? l.name : null);
-        m.put("requiredMatches", r.requiredMatches); m.put("winningThresholds", r.winningThresholds);
-        m.put("maxCouponsPerUser", r.maxCouponsPerUser); m.put("maxDoubles", r.maxDoubles);
-        m.put("maxTriples", r.maxTriples); m.put("fullCompletionRequired", r.fullCompletionRequired);
+        m.put("requiredBets", r.requiredBets); m.put("winningThresholds", r.winningThresholds);
+        m.put("maxSchedinePerUser", r.maxSchedinePerUser);
+        m.put("fullCompletionRequired", r.fullCompletionRequired);
         m.put("isActive", r.isActive);
-        return m;
-    }
-
-    private Map<String, Object> contestToMap(Contest c) {
-        League l = League.findById(c.leagueId);
-        Rule   r = Rule.findById(c.ruleId);
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("id", c.id); m.put("name", c.name); m.put("description", c.description);
-        m.put("leagueId", c.leagueId); m.put("leagueName", l != null ? l.name : null);
-        m.put("ruleId",   c.ruleId);   m.put("ruleName",   r != null ? r.name : null);
-        m.put("openAt", c.openAt); m.put("closeAt", c.closeAt); m.put("status", c.status);
         return m;
     }
 
@@ -361,23 +307,11 @@ public class AdminImportExportResource {
             try { return Long.parseLong(row.get("teamId")); } catch (NumberFormatException ignored) {}
         }
         if (hasValue(row, "teamName")) {
-            // Restringi per lega se specificata, altrimenti prendi la prima corrispondenza
             Long leagueId = resolveLeagueId(row);
             Team t = leagueId != null
                     ? Team.<Team>find("name = ?1 and leagueId = ?2", row.get("teamName"), leagueId).firstResult()
                     : Team.<Team>find("name", row.get("teamName")).firstResult();
             return t != null ? t.id : null;
-        }
-        return null;
-    }
-
-    private Long resolveRuleId(Map<String, String> row) {
-        if (hasValue(row, "ruleId")) {
-            try { return Long.parseLong(row.get("ruleId")); } catch (NumberFormatException ignored) {}
-        }
-        if (hasValue(row, "ruleName")) {
-            Rule r = Rule.<Rule>find("name", row.get("ruleName")).firstResult();
-            return r != null ? r.id : null;
         }
         return null;
     }
@@ -393,10 +327,5 @@ public class AdminImportExportResource {
 
     private boolean hasValue(Map<String, String> row, String key) {
         return row.containsKey(key) && row.get(key) != null && !row.get(key).isBlank();
-    }
-
-    private String normalizeDateTime(String s) {
-        // Remove trailing Z, normalize to LocalDateTime format
-        return s.replace("Z", "").replace(" ", "T").substring(0, 19);
     }
 }

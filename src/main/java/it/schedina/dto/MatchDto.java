@@ -12,13 +12,10 @@ public final class MatchDto {
     public record MatchRequest(
             @NotNull Long homeTeamId,
             @NotNull Long awayTeamId,
-            Long contestId,
-            @NotNull LocalDateTime scheduledAt,
-            Match.BetType betType,
-            Double overUnderLine
+            @NotNull LocalDateTime scheduledAt
     ) {}
 
-    /** Richiede il punteggio reale: il risultato viene calcolato automaticamente */
+    /** Punteggio reale: risolve automaticamente le scommesse AUTO collegate. */
     public record MatchResultRequest(
             @NotNull Integer homeScore,
             @NotNull Integer awayScore
@@ -27,19 +24,13 @@ public final class MatchDto {
     public record MatchResponse(
             Long id, Long homeTeamId, String homeTeamName,
             Long awayTeamId, String awayTeamName,
-            Long leagueId, Long contestId,
-            LocalDateTime scheduledAt, Match.Status status,
-            Match.BetType betType, Double overUnderLine,
-            Integer homeScore, Integer awayScore,
-            String officialResult
+            Long leagueId, LocalDateTime scheduledAt, Match.Status status,
+            Integer homeScore, Integer awayScore
     ) {
         public static MatchResponse from(Match m, String homeName, String awayName) {
             return new MatchResponse(m.id, m.homeTeamId, homeName,
-                    m.awayTeamId, awayName, m.leagueId, m.contestId,
-                    m.scheduledAt, m.status,
-                    m.betType, m.overUnderLine,
-                    m.homeScore, m.awayScore,
-                    m.officialResult);
+                    m.awayTeamId, awayName, m.leagueId,
+                    m.scheduledAt, m.status, m.homeScore, m.awayScore);
         }
     }
 }
