@@ -1,6 +1,6 @@
 # Redesign #2 — Calendario, Giornate, Schedina vs Scommesse extra
 
-> Stato: **backend implementato (Fasi 1-4) + test verdi su branch `feat/calendario-giornate`. Frontend (Fase 5) e deploy da fare.**
+> Stato: **backend (Fasi 1-4) su branch BE `feat/calendario-giornate` + frontend (Fase 5) su branch FE `feat/calendario-giornate` (build verde). Restano Fase 6 (test e2e + deploy) e la ricattura degli screenshot della guida.**
 > Data: 2026-05-29
 > Separa due giochi: la **Schedina** (1X2 + U/O su ogni giornata del calendario)
 > e le **Scommesse extra** (fine stagione o di giornata), giocate con un flow diverso.
