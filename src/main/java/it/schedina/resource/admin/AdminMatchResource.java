@@ -1,7 +1,9 @@
 package it.schedina.resource.admin;
 
 import it.schedina.dto.MatchDto;
+import it.schedina.entity.Giornata;
 import it.schedina.entity.Match;
+import it.schedina.entity.Player;
 import it.schedina.entity.Team;
 import it.schedina.service.AuthService;
 import it.schedina.service.ScommessaResolutionService;
@@ -56,14 +58,18 @@ public class AdminMatchResource {
         if (home == null || away == null) {
             return Response.status(404).entity(Map.of("error", "Squadra non trovata")).build();
         }
-        if (!home.leagueId.equals(away.leagueId)) {
-            return Response.status(400).entity(Map.of("error", "Le due squadre devono appartenere alla stessa divisione")).build();
+        Giornata g = req.giornataId() != null ? Giornata.findById(req.giornataId()) : null;
+        if (g == null) {
+            return Response.status(404).entity(Map.of("error", "Giornata non trovata")).build();
+        }
+        if (!home.leagueId.equals(g.leagueId) || !away.leagueId.equals(g.leagueId)) {
+            return Response.status(400).entity(Map.of("error", "Le squadre devono appartenere alla lega della giornata")).build();
         }
         Match m = new Match();
         m.homeTeamId = req.homeTeamId();
         m.awayTeamId = req.awayTeamId();
-        m.leagueId = home.leagueId;
-        m.giornataId = req.giornataId();
+        m.leagueId = g.leagueId;
+        m.giornataId = g.id;
         m.scheduledAt = req.scheduledAt();
         if (req.overUnderLine() != null) m.overUnderLine = req.overUnderLine();
         m.persist();
@@ -116,7 +122,30 @@ public class AdminMatchResource {
         m.awayScore = req.awayScore();
         m.status = Match.Status.RESULT_ENTERED;
         m.persist();
-        int resolved = resolution.resolveFromMatch(m);
+        int resolved = resolution.resolveMatchBets(m);
+        return Response.ok(Map.of("match", enrich(m), "betsResolved", resolved)).build();
+    }
+
+    /** Imposta (o azzera) il primo marcatore della partita e risolve le scommesse "Primo marcatore". */
+    @PUT
+    @Path("/{id}/first-scorer")
+    @Transactional
+    public Response setFirstScorer(@HeaderParam("Authorization") String token,
+            @PathParam("id") Long id, MatchDto.FirstScorerRequest req) {
+        auth.requireAdminOrMod(token);
+        Match m = Match.findById(id);
+        if (m == null) throw new NotFoundException();
+        if (req != null && req.playerId() != null) {
+            Player p = Player.findById(req.playerId());
+            if (p == null || (!m.homeTeamId.equals(p.teamId) && !m.awayTeamId.equals(p.teamId))) {
+                return Response.status(400).entity(Map.of("error", "Il marcatore deve essere un giocatore delle due squadre")).build();
+            }
+            m.firstScorerPlayerId = req.playerId();
+        } else {
+            m.firstScorerPlayerId = null;
+        }
+        m.persist();
+        int resolved = resolution.resolveMatchBets(m);
         return Response.ok(Map.of("match", enrich(m), "betsResolved", resolved)).build();
     }
 

@@ -11,8 +11,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
- * Motore della schedina di giornata: per ogni partita 1X2 + Under/Over (1 punto ciascuno),
- * vincita a soglia esatta. process() idempotente, calcola gli esiti dal punteggio delle partite.
+ * Motore della schedina del Concorso: per ogni partita selezionata 1X2 + Under/Over
+ * (1 punto ciascuno), vincita a soglia esatta. process() idempotente, calcola gli esiti
+ * dal punteggio delle partite. Le soglie vengono dalla regola del concorso (fallback locale).
  */
 @ApplicationScoped
 public class SchedinaScoringEngine {
@@ -23,23 +24,23 @@ public class SchedinaScoringEngine {
     @Transactional
     public Schedina createSchedina(Long userId, SchedinaDto.CreateRequest req) {
         LocalDateTime now = LocalDateTime.now();
-        Giornata g = Giornata.findById(req.giornataId());
-        if (g == null) throw bad("Giornata non trovata");
-        if (g.status != Giornata.Status.OPEN) throw bad("La giornata non è aperta alle giocate");
-        if (now.isAfter(g.closeAt)) throw bad("Termine di chiusura della giornata superato");
-        if (Schedina.findActiveByUserAndGiornata(userId, g.id) != null) {
-            throw bad("Hai già una schedina per questa giornata");
+        Concorso c = Concorso.findById(req.concorsoId());
+        if (c == null) throw bad("Concorso non trovato");
+        if (c.status != Concorso.Status.OPEN) throw bad("Il concorso non è aperto alle giocate");
+        if (now.isAfter(c.closeAt)) throw bad("Termine di chiusura del concorso superato");
+        if (Schedina.findActiveByUserAndConcorso(userId, c.id) != null) {
+            throw bad("Hai già una schedina per questo concorso");
         }
 
-        List<Match> matches = Match.findByGiornata(g.id);
-        if (matches.isEmpty()) throw bad("La giornata non ha partite");
+        List<Match> matches = Match.findByConcorso(c.id);
+        if (matches.isEmpty()) throw bad("Il concorso non ha partite selezionate");
         Map<Long, Match> byId = new HashMap<>();
         for (Match m : matches) byId.put(m.id, m);
 
         Set<Long> seen = new HashSet<>();
         for (var p : req.pronostici()) {
             Match m = byId.get(p.matchId());
-            if (m == null) throw bad("La partita " + p.matchId() + " non appartiene a questa giornata");
+            if (m == null) throw bad("La partita " + p.matchId() + " non appartiene a questo concorso");
             if (!seen.add(p.matchId())) throw bad("Partita duplicata: " + p.matchId());
             if (!VALID_1X2.contains(p.choice1x2())) throw bad("Esito 1X2 non valido per la partita " + p.matchId());
             if (!VALID_UO.contains(p.choiceUo().toUpperCase())) throw bad("Under/Over non valido per la partita " + p.matchId());
@@ -51,7 +52,7 @@ public class SchedinaScoringEngine {
 
         Schedina s = new Schedina();
         s.userId = userId;
-        s.giornataId = g.id;
+        s.concorsoId = c.id;
         s.persist();
         for (var p : req.pronostici()) {
             Selezione sel = new Selezione();
@@ -67,8 +68,8 @@ public class SchedinaScoringEngine {
     @Transactional
     public Schedina confirm(Schedina s) {
         if (s.status != Schedina.Status.DRAFT) throw bad("Solo le schedine in bozza possono essere confermate");
-        Giornata g = Giornata.findById(s.giornataId);
-        if (LocalDateTime.now().isAfter(g.closeAt)) throw bad("Termine di chiusura della giornata superato");
+        Concorso c = Concorso.findById(s.concorsoId);
+        if (LocalDateTime.now().isAfter(c.closeAt)) throw bad("Termine di chiusura del concorso superato");
         s.status = Schedina.Status.CONFIRMED;
         s.confirmedAt = LocalDateTime.now();
         s.persist();
@@ -77,21 +78,21 @@ public class SchedinaScoringEngine {
 
     /** Idempotente. Calcola 1X2 e U/O dal punteggio delle partite; vincita quando tutte hanno il risultato. */
     @Transactional
-    public Map<String, Object> process(Giornata g) {
-        List<Match> matches = Match.findByGiornata(g.id);
+    public Map<String, Object> process(Concorso c) {
+        List<Match> matches = Match.findByConcorso(c.id);
         long scored = matches.stream().filter(Match::hasScore).count();
         boolean allScored = scored == matches.size() && !matches.isEmpty();
         Map<Long, Match> byId = new HashMap<>();
         for (Match m : matches) byId.put(m.id, m);
 
         List<Schedina> schedine = Schedina.<Schedina>find(
-                "giornataId = ?1 and status in ?2", g.id,
+                "concorsoId = ?1 and status in ?2", c.id,
                 List.of(Schedina.Status.CONFIRMED, Schedina.Status.PROCESSED,
                         Schedina.Status.WINNING, Schedina.Status.NOT_WINNING)).list();
 
         // Soglie vincenti: dalla regola se assegnata, altrimenti quelle locali (legacy/fallback).
-        Rule rule = g.ruleId != null ? Rule.findById(g.ruleId) : null;
-        List<Integer> thresholds = rule != null ? rule.winningThresholds : g.winningThresholds;
+        Rule rule = c.ruleId != null ? Rule.findById(c.ruleId) : null;
+        List<Integer> thresholds = rule != null ? rule.winningThresholds : c.winningThresholds;
 
         int winners = 0;
         for (Schedina s : schedine) {
@@ -117,17 +118,17 @@ public class SchedinaScoringEngine {
             s.persist();
         }
         if (allScored) {
-            g.status = Giornata.Status.PROCESSED;
-            g.persist();
+            c.status = Concorso.Status.PROCESSED;
+            c.persist();
         }
         return Map.ofEntries(
-                Map.entry("giornataId", g.id),
+                Map.entry("concorsoId", c.id),
                 Map.entry("matches", matches.size()),
                 Map.entry("matchesScored", (int) scored),
                 Map.entry("allScored", allScored),
                 Map.entry("schedineProcessed", schedine.size()),
                 Map.entry("winners", winners),
-                Map.entry("status", g.status.name())
+                Map.entry("status", c.status.name())
         );
     }
 

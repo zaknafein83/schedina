@@ -12,7 +12,7 @@ public final class MatchDto {
     public record MatchRequest(
             @NotNull Long homeTeamId,
             @NotNull Long awayTeamId,
-            Long giornataId,
+            @NotNull Long giornataId,
             @NotNull LocalDateTime scheduledAt,
             Double overUnderLine
     ) {}
@@ -22,18 +22,20 @@ public final class MatchDto {
             @NotNull Integer awayScore
     ) {}
 
+    public record FirstScorerRequest(Long playerId) {}
+
     public record MatchResponse(
-            Long id, Long giornataId,
+            Long id, Long giornataId, Long concorsoId,
             Long homeTeamId, String homeTeamName,
             Long awayTeamId, String awayTeamName,
             Long leagueId, LocalDateTime scheduledAt, Match.Status status,
             Double overUnderLine, Integer homeScore, Integer awayScore,
-            String result1x2, String resultUO
+            String result1x2, String resultUO, Long firstScorerPlayerId
     ) {
         public static MatchResponse from(Match m, String homeName, String awayName) {
-            return new MatchResponse(m.id, m.giornataId, m.homeTeamId, homeName,
+            return new MatchResponse(m.id, m.giornataId, m.concorsoId, m.homeTeamId, homeName,
                     m.awayTeamId, awayName, m.leagueId, m.scheduledAt, m.status,
-                    m.overUnderLine, m.homeScore, m.awayScore, m.result1x2(), m.resultUO());
+                    m.overUnderLine, m.homeScore, m.awayScore, m.result1x2(), m.resultUO(), m.firstScorerPlayerId);
         }
     }
 }

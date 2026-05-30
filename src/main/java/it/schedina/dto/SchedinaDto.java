@@ -20,17 +20,17 @@ public final class SchedinaDto {
     ) {}
 
     public record CreateRequest(
-            @NotNull Long giornataId,
+            @NotNull Long concorsoId,
             @NotEmpty List<PronosticoInput> pronostici
     ) {}
 
     public record SchedinaSummary(
-            Long id, Long userId, Long giornataId, Schedina.Status status,
+            Long id, Long userId, Long concorsoId, Schedina.Status status,
             Integer correctCount, Boolean isWinner,
             LocalDateTime confirmedAt, LocalDateTime createdAt
     ) {
         public static SchedinaSummary from(Schedina s) {
-            return new SchedinaSummary(s.id, s.userId, s.giornataId, s.status,
+            return new SchedinaSummary(s.id, s.userId, s.concorsoId, s.status,
                     s.correctCount, s.isWinner, s.confirmedAt, s.createdAt);
         }
     }
@@ -43,7 +43,7 @@ public final class SchedinaDto {
     ) {}
 
     public record SchedinaDetail(
-            Long id, Long userId, Long giornataId, Schedina.Status status,
+            Long id, Long userId, Long concorsoId, Schedina.Status status,
             Integer correctCount, Boolean isWinner, List<SelezioneResponse> selezioni
     ) {}
 }

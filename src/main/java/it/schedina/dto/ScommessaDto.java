@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
+/** Scommesse di FINE CAMPIONATO (catalogo). Le scommesse di partita usano {@link GiocataPartitaDto}. */
 public final class ScommessaDto {
 
     private ScommessaDto() {}
@@ -14,14 +15,11 @@ public final class ScommessaDto {
     public record OptionInput(@NotBlank String ref, String label, Integer displayOrder) {}
 
     public record ScommessaRequest(
-            @NotNull Scommessa.Scope scope,
             @NotBlank String label,
             @NotNull Scommessa.Market market,
             Long seasonId,
-            Long giornataId,
-            Long matchId,
-            Long leagueId,
             Long tournamentId,
+            Long leagueId,
             List<OptionInput> options
     ) {}
 
@@ -34,16 +32,14 @@ public final class ScommessaDto {
     }
 
     public record ScommessaResponse(
-            Long id, Scommessa.Scope scope, String label,
-            Scommessa.Market market, Scommessa.TargetKind targetKind,
-            Long seasonId, Long giornataId, Long matchId, Long tournamentId, Long leagueId,
-            Scommessa.ResolutionMode resolutionMode, Scommessa.Status status,
-            String officialResultRef, List<OptionResponse> options
+            Long id, String label, Scommessa.Market market, Scommessa.TargetKind targetKind,
+            Long seasonId, Long tournamentId, Long leagueId,
+            Scommessa.Status status, String officialResultRef, List<OptionResponse> options
     ) {
         public static ScommessaResponse from(Scommessa b, List<BetOption> opts) {
-            return new ScommessaResponse(b.id, b.scope, b.label, b.market, b.targetKind(),
-                    b.seasonId, b.giornataId, b.matchId, b.tournamentId, b.leagueId,
-                    b.resolutionMode, b.status, b.officialResultRef,
+            return new ScommessaResponse(b.id, b.label, b.market, b.targetKind(),
+                    b.seasonId, b.tournamentId, b.leagueId,
+                    b.status, b.officialResultRef,
                     opts.stream().map(OptionResponse::from).toList());
         }
     }

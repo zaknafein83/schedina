@@ -14,8 +14,8 @@ public final class GiocataDto {
     ) {}
 
     public record GiocataResponse(
-            Long id, Long scommessaId, String scommessaLabel,
-            Scommessa.Scope scope, String choiceRef, String choiceLabel,
+            Long id, Long scommessaId, String scommessaLabel, Scommessa.Market market,
+            String choiceRef, String choiceLabel,
             Boolean isCorrect, Scommessa.Status scommessaStatus, String officialResultRef
     ) {}
 }

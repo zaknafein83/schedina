@@ -1,10 +1,7 @@
 package it.schedina.service;
 
 import it.schedina.dto.ScommessaDto;
-import it.schedina.entity.BetOption;
-import it.schedina.entity.Giocata;
-import it.schedina.entity.Match;
-import it.schedina.entity.Scommessa;
+import it.schedina.entity.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
@@ -16,28 +13,31 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Catalogo Scommesse extra (fine stagione / di giornata) + giocate degli utenti.
- * Creazione con opzioni, risoluzione (manuale o AUTO da punteggio) con scoring delle Giocate.
+ * Scommesse di FINE CAMPIONATO (catalogo + risoluzione manuale, scoring delle Giocate)
+ * e scommesse DI PARTITA (GiocataPartita: piazzamento + risoluzione automatica dal punteggio,
+ * Primo marcatore manuale).
  */
 @ApplicationScoped
 public class ScommessaResolutionService {
 
+    // ---- Fine campionato (catalogo) ----
+
     @Transactional
     public Scommessa create(ScommessaDto.ScommessaRequest req) {
+        if (!Scommessa.isSeasonMarket(req.market())) {
+            throw bad("Mercato non valido per una scommessa di fine campionato");
+        }
+        List<ScommessaDto.OptionInput> opts = req.options() != null ? req.options() : new ArrayList<>();
+        if (opts.size() < 2) throw bad("La scommessa richiede almeno 2 opzioni");
+
         Scommessa b = new Scommessa();
-        b.scope = req.scope();
         b.label = req.label();
         b.market = req.market();
         b.seasonId = req.seasonId();
-        b.giornataId = req.giornataId();
-        b.matchId = req.matchId();
-        b.leagueId = req.leagueId();
         b.tournamentId = req.tournamentId();
-        b.resolutionMode = Scommessa.defaultResolution(req.market());
+        b.leagueId = req.leagueId();
         b.persist();
 
-        List<ScommessaDto.OptionInput> opts = standardOrProvided(b, req.options());
-        if (opts.isEmpty()) throw bad("La scommessa richiede almeno un'opzione selezionabile");
         int order = 0;
         for (var o : opts) {
             BetOption op = new BetOption();
@@ -51,14 +51,6 @@ public class ScommessaResolutionService {
         return b;
     }
 
-    private List<ScommessaDto.OptionInput> standardOrProvided(Scommessa b, List<ScommessaDto.OptionInput> provided) {
-        if (b.market == Scommessa.Market.GOAL_NOGOAL && (provided == null || provided.isEmpty())) {
-            return List.of(new ScommessaDto.OptionInput("GOAL", "Gol", null),
-                    new ScommessaDto.OptionInput("NOGOAL", "No gol", null));
-        }
-        return provided != null ? provided : new ArrayList<>();
-    }
-
     @Transactional
     public Scommessa resolveManual(Long betId, String winningRef) {
         Scommessa b = Scommessa.findById(betId);
@@ -70,7 +62,10 @@ public class ScommessaResolutionService {
         b.status = Scommessa.Status.RESOLVED;
         b.resolvedAt = LocalDateTime.now();
         b.persist();
-        scoreGiocate(b);
+        for (Giocata g : Giocata.findByScommessa(b.id)) {
+            g.isCorrect = winningRef.equals(g.choiceRef);
+            g.persist();
+        }
         return b;
     }
 
@@ -98,28 +93,6 @@ public class ScommessaResolutionService {
         return b;
     }
 
-    /** Risolve automaticamente le scommesse AUTO (Gol/No gol) legate alla partita, dal punteggio. */
-    @Transactional
-    public int resolveFromMatch(Match m) {
-        if (!m.hasScore()) return 0;
-        int resolved = 0;
-        for (Scommessa b : Scommessa.findByMatch(m.id)) {
-            if (b.resolutionMode != Scommessa.ResolutionMode.AUTO || b.status != Scommessa.Status.OPEN) continue;
-            String ref = b.market == Scommessa.Market.GOAL_NOGOAL
-                    ? ((m.homeScore > 0 && m.awayScore > 0) ? "GOAL" : "NOGOAL")
-                    : null;
-            if (ref == null) continue;
-            b.officialResultRef = ref;
-            b.status = Scommessa.Status.RESOLVED;
-            b.resolvedAt = LocalDateTime.now();
-            b.persist();
-            scoreGiocate(b);
-            resolved++;
-        }
-        return resolved;
-    }
-
-    /** Piazza (o aggiorna) la giocata di un utente su una scommessa aperta. */
     @Transactional
     public Giocata placeGiocata(Long userId, Long scommessaId, String choiceRef) {
         Scommessa b = Scommessa.findById(scommessaId);
@@ -133,12 +106,70 @@ public class ScommessaResolutionService {
         return g;
     }
 
-    private void scoreGiocate(Scommessa b) {
-        if (b.officialResultRef == null) return;
-        for (Giocata g : Giocata.findByScommessa(b.id)) {
-            g.isCorrect = b.officialResultRef.equals(g.choiceRef);
-            g.persist();
+    // ---- Di partita (GiocataPartita) ----
+
+    @Transactional
+    public GiocataPartita placeGiocataPartita(Long userId, Long matchId, Scommessa.Market market, String prediction) {
+        Match m = Match.findById(matchId);
+        if (m == null) throw notFound();
+        if (!GiocataPartita.isMatchMarket(market)) throw bad("Mercato non valido per una scommessa di partita");
+        if (m.hasScore() || m.status == Match.Status.VALIDATED) throw bad("Partita non più disponibile alle scommesse");
+        if (prediction == null || prediction.isBlank()) throw bad("Previsione mancante");
+        prediction = prediction.trim();
+
+        switch (market) {
+            case GOAL_NOGOAL -> {
+                if (!prediction.equals("GOAL") && !prediction.equals("NOGOAL")) throw bad("Previsione non valida (GOAL/NOGOAL)");
+            }
+            case WINNER -> {
+                if (!prediction.equals(String.valueOf(m.homeTeamId)) && !prediction.equals(String.valueOf(m.awayTeamId)))
+                    throw bad("Il vincitore deve essere una delle due squadre");
+            }
+            case EXACT_SCORE -> {
+                if (!prediction.matches("\\d{1,2}-\\d{1,2}")) throw bad("Risultato esatto non valido (es. 2-1)");
+            }
+            case FIRST_SCORER -> {
+                Player p = Player.findById(parseLong(prediction));
+                if (p == null || (!m.homeTeamId.equals(p.teamId) && !m.awayTeamId.equals(p.teamId)))
+                    throw bad("Il marcatore deve essere un giocatore delle due squadre");
+            }
+            default -> throw bad("Mercato non valido");
         }
+
+        GiocataPartita g = GiocataPartita.findByUserMatchMarket(userId, matchId, market);
+        if (g == null) { g = new GiocataPartita(); g.userId = userId; g.matchId = matchId; g.market = market; }
+        g.prediction = prediction;
+        g.isCorrect = null;
+        g.persist();
+        return g;
+    }
+
+    /** Risolve le giocate di partita risolvibili dal punteggio (GOAL_NOGOAL, WINNER, EXACT_SCORE)
+     *  e — se impostato il primo marcatore — anche FIRST_SCORER. Idempotente. */
+    @Transactional
+    public int resolveMatchBets(Match m) {
+        if (!m.hasScore()) return 0;
+        String gng = (m.homeScore > 0 && m.awayScore > 0) ? "GOAL" : "NOGOAL";
+        Long winner = m.winnerTeamId();
+        String exact = m.homeScore + "-" + m.awayScore;
+
+        int n = 0;
+        for (GiocataPartita g : GiocataPartita.findByMatch(m.id)) {
+            Boolean correct = switch (g.market) {
+                case GOAL_NOGOAL -> g.prediction.equals(gng);
+                case WINNER -> winner != null && g.prediction.equals(String.valueOf(winner));
+                case EXACT_SCORE -> g.prediction.equals(exact);
+                case FIRST_SCORER -> m.firstScorerPlayerId != null
+                        ? g.prediction.equals(String.valueOf(m.firstScorerPlayerId)) : null;
+                default -> null;
+            };
+            if (correct != null) { g.isCorrect = correct; g.persist(); n++; }
+        }
+        return n;
+    }
+
+    private long parseLong(String s) {
+        try { return Long.parseLong(s); } catch (Exception e) { return -1L; }
     }
 
     private WebApplicationException bad(String msg) {
@@ -146,6 +177,6 @@ public class ScommessaResolutionService {
     }
 
     private WebApplicationException notFound() {
-        return new WebApplicationException(Response.status(404).entity(Map.of("error", "Scommessa non trovata")).build());
+        return new WebApplicationException(Response.status(404).entity(Map.of("error", "Risorsa non trovata")).build());
     }
 }
