@@ -24,6 +24,10 @@ public class Giornata extends PanacheEntityBase {
     @Column(name = "season_id")
     public Long seasonId;
 
+    /** Regola che definisce le soglie vincenti della schedina (opzionale fino all'elaborazione). */
+    @Column(name = "rule_id")
+    public Long ruleId;
+
     @Column(nullable = false)
     public int number;
 

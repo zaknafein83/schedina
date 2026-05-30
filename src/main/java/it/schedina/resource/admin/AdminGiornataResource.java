@@ -3,6 +3,7 @@ package it.schedina.resource.admin;
 import it.schedina.dto.GiornataDto;
 import it.schedina.entity.Giornata;
 import it.schedina.entity.Match;
+import it.schedina.entity.Rule;
 import it.schedina.entity.Schedina;
 import it.schedina.entity.Scommessa;
 import it.schedina.service.AuthService;
@@ -29,7 +30,8 @@ public class AdminGiornataResource {
     @Inject NotificationService notifications;
 
     private GiornataDto.GiornataResponse resp(Giornata g) {
-        return GiornataDto.GiornataResponse.from(g,
+        Rule rule = g.ruleId != null ? Rule.findById(g.ruleId) : null;
+        return GiornataDto.GiornataResponse.from(g, rule,
                 Match.count("giornataId", g.id), Schedina.count("giornataId", g.id));
     }
 
@@ -58,6 +60,7 @@ public class AdminGiornataResource {
         g.name = req.name();
         g.number = req.number() != null ? req.number() : (int) (Giornata.count() + 1);
         g.seasonId = req.seasonId();
+        g.ruleId = req.ruleId();
         g.openAt = req.openAt();
         g.closeAt = req.closeAt();
         if (req.winningThresholds() != null) g.winningThresholds = new ArrayList<>(req.winningThresholds());
@@ -76,6 +79,7 @@ public class AdminGiornataResource {
         if (req.name() != null) g.name = req.name();
         if (req.number() != null) g.number = req.number();
         if (req.seasonId() != null) g.seasonId = req.seasonId();
+        if (req.ruleId() != null) g.ruleId = req.ruleId();
         if (req.openAt() != null) g.openAt = req.openAt();
         if (req.closeAt() != null) g.closeAt = req.closeAt();
         if (req.winningThresholds() != null) g.winningThresholds = new ArrayList<>(req.winningThresholds());
