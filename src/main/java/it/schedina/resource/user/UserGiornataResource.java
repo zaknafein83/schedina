@@ -4,6 +4,7 @@ import it.schedina.dto.GiornataDto;
 import it.schedina.dto.MatchDto;
 import it.schedina.entity.Giornata;
 import it.schedina.entity.Match;
+import it.schedina.entity.Rule;
 import it.schedina.entity.Schedina;
 import it.schedina.entity.Team;
 import it.schedina.service.AuthService;
@@ -21,7 +22,8 @@ public class UserGiornataResource {
     @Inject AuthService auth;
 
     private GiornataDto.GiornataResponse resp(Giornata g) {
-        return GiornataDto.GiornataResponse.from(g,
+        Rule rule = g.ruleId != null ? Rule.findById(g.ruleId) : null;
+        return GiornataDto.GiornataResponse.from(g, rule,
                 Match.count("giornataId", g.id), Schedina.count("giornataId", g.id));
     }
 

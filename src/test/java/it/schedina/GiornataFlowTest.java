@@ -64,6 +64,41 @@ class GiornataFlowTest {
     }
 
     @Test
+    void schedina_vince_con_regola_riusabile() {
+        String auth = "Bearer " + token();
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
+        long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
+        long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
+
+        // Regola riusabile con soglia 2 (entrambi i pronostici corretti su 1 partita)
+        long ruleId = post(auth, "/admin/rules", "{\"name\":\"Regola " + System.nanoTime() + "\",\"winningThresholds\":[2]}", 201);
+
+        // Giornata SENZA winningThresholds locali: le soglie vengono dalla regola
+        long g = post(auth, "/admin/giornate",
+                "{\"name\":\"Giornata regola\",\"ruleId\":" + ruleId + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
+        long m = post(auth, "/admin/matches",
+                "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}", 201);
+
+        // la risposta giornata espone ruleName e le soglie risolte dalla regola
+        given().header("Authorization", auth).get("/admin/giornate/" + g).then().statusCode(200)
+                .body("ruleId", is((int) ruleId)).body("winningThresholds[0]", is(2));
+
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/giornate/" + g + "/open").then().statusCode(200);
+        long sched = post(auth, "/schedine",
+                "{\"giornataId\":" + g + ",\"pronostici\":[{\"matchId\":" + m + ",\"choice1x2\":\"1\",\"choiceUo\":\"O\"}]}", 201);
+        given().header("Authorization", auth).contentType("application/json").post("/schedine/" + sched + "/confirm").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json").post("/admin/giornate/" + g + "/close").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":2,\"awayScore\":1}")
+                .when().put("/admin/matches/" + m + "/result").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json").post("/admin/giornate/" + g + "/process")
+                .then().statusCode(200).body("winners", is(1));
+
+        given().header("Authorization", auth).get("/schedine/" + sched).then().statusCode(200)
+                .body("status", equalTo("WINNING"));
+    }
+
+    @Test
     void scommessa_extra_con_giocata() {
         String auth = "Bearer " + token();
         long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);

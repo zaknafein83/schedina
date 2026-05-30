@@ -89,6 +89,10 @@ public class SchedinaScoringEngine {
                 List.of(Schedina.Status.CONFIRMED, Schedina.Status.PROCESSED,
                         Schedina.Status.WINNING, Schedina.Status.NOT_WINNING)).list();
 
+        // Soglie vincenti: dalla regola se assegnata, altrimenti quelle locali (legacy/fallback).
+        Rule rule = g.ruleId != null ? Rule.findById(g.ruleId) : null;
+        List<Integer> thresholds = rule != null ? rule.winningThresholds : g.winningThresholds;
+
         int winners = 0;
         for (Schedina s : schedine) {
             int correct = 0;
@@ -104,7 +108,7 @@ public class SchedinaScoringEngine {
             }
             s.correctCount = correct;
             if (allScored) {
-                s.isWinner = g.winningThresholds.contains(correct);
+                s.isWinner = thresholds.contains(correct);
                 s.status = s.isWinner ? Schedina.Status.WINNING : Schedina.Status.NOT_WINNING;
                 if (Boolean.TRUE.equals(s.isWinner)) winners++;
             } else {
