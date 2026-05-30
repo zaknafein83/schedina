@@ -114,6 +114,22 @@ public class AdminGiornataResource {
         return Response.ok(resp(g)).build();
     }
 
+    /** Riapre una giornata chiusa o già elaborata, riportandola a OPEN (admin/mod). */
+    @POST
+    @Path("/{id}/reopen")
+    @Transactional
+    public Response reopen(@HeaderParam("Authorization") String token, @PathParam("id") Long id) {
+        auth.requireAdminOrMod(token);
+        Giornata g = Giornata.findById(id);
+        if (g == null) throw new NotFoundException();
+        if (g.status != Giornata.Status.CLOSED && g.status != Giornata.Status.PROCESSED) {
+            return Response.status(400).entity(Map.of("error", "Solo una giornata chiusa o elaborata può essere riaperta")).build();
+        }
+        g.status = Giornata.Status.OPEN;
+        g.persist();
+        return Response.ok(resp(g)).build();
+    }
+
     @POST
     @Path("/{id}/process")
     @Transactional
