@@ -1,7 +1,7 @@
 # Redesign #2 — Calendario, Giornate, Schedina vs Scommesse extra
 
-> Stato: **backend (Fasi 1-4) su branch BE `feat/calendario-giornate` + frontend (Fase 5) su branch FE `feat/calendario-giornate` (build verde). Restano Fase 6 (test e2e + deploy) e la ricattura degli screenshot della guida.**
-> Data: 2026-05-29
+> Stato: **✅ COMPLETATO e DEPLOYATO IN PRODUZIONE (2026-05-30).** Tutte le fasi 0-6 chiuse.
+> Data: 2026-05-29 (design) · 2026-05-30 (frontend + deploy)
 > Separa due giochi: la **Schedina** (1X2 + U/O su ogni giornata del calendario)
 > e le **Scommesse extra** (fine stagione o di giornata), giocate con un flow diverso.
 
@@ -99,10 +99,40 @@ schedina (le soglie vivono sulla Giornata); valutare se tenerla per altro.
 > giocatori, stagioni, tornei). Azzera i dati di gioco correnti (concorsi/schedine
 > di test). Cutover forward-only (Flyway V18).
 
-- **Fase 0** — verifica DB prod (cosa preservare vs azzerare).
-- **Fase 1** — Backend dominio: `Giornata` (new), `Giocata` (new); `Match` (+giornataId, +overUnderLine); `Schedina`→giornataId, `Selezione`→(matchId, market); `Scommessa` riscope (SEASON/GIORNATA); rimuovere `Concorso`.
-- **Fase 2** — Flyway **V18**: preserva anagrafiche, ricrea tabelle di gioco (giornate, schedine, selezioni, scommesse, giocate; matches +colonne).
-- **Fase 3** — Engine: `SchedinaScoringEngine` (giornata, 1X2+UO da punteggio) + risoluzione scommesse extra con scoring delle Giocate.
-- **Fase 4** — REST: admin (calendario/giornate, partite, scommesse extra, risoluzione) + user (schedina per giornata, scommesse extra).
-- **Fase 5** — Frontend: admin Calendario/Giornate + catalogo Scommesse; user Schedina (per giornata) + pagina Scommesse separata; guida + screenshot.
-- **Fase 6** — Test (integrazione BE + e2e Playwright) e deploy (preservando le anagrafiche).
+- [x] **Fase 0** — verifica DB prod (cosa preservare vs azzerare).
+- [x] **Fase 1** — Backend dominio: `Giornata` (new), `Giocata` (new); `Match` (+giornataId, +overUnderLine); `Schedina`→giornataId, `Selezione`→(matchId, market); `Scommessa` riscope (SEASON/GIORNATA); rimuovere `Concorso`.
+- [x] **Fase 2** — Flyway **V18**: preserva anagrafiche, ricrea tabelle di gioco (giornate, schedine, selezioni, scommesse, giocate; matches +colonne).
+- [x] **Fase 3** — Engine: `SchedinaScoringEngine` (giornata, 1X2+UO da punteggio) + risoluzione scommesse extra con scoring delle Giocate.
+- [x] **Fase 4** — REST: admin (calendario/giornate, partite, scommesse extra, risoluzione) + user (schedina per giornata, scommesse extra).
+- [x] **Fase 5** — Frontend: admin Calendario/Giornate + catalogo Scommesse; user Schedina (per giornata) + pagina Scommesse separata; guida + screenshot.
+- [x] **Fase 6** — Test (integrazione BE + e2e Playwright) e deploy (preservando le anagrafiche).
+
+---
+
+## Cronologia / esito
+
+**2026-05-29** — Backend (Fasi 0-4) implementato, committato e testato sul branch
+`feat/calendario-giornate` (commit `18dd472`).
+
+**2026-05-30** — Frontend (Fase 5) + test e deploy (Fase 6):
+
+- **Frontend** (repo `schedina-frontend`, branch `feat/calendario-giornate`):
+  - Admin: `Giornate` (CRUD + open/close/process, soglie vincenti), `GiornataDetail`
+    (partite multi-divisione + inserimento punteggio/validazione, lista schedine),
+    `Scommesse` (catalogo SEASON/GIORNATA, mercati TOKEN/TEAM/PLAYER, resolve/void),
+    `Schedine` per giornata, `Dashboard` aggiornata.
+  - User: `Giornate` aperte, `GiornataDetail` (1X2 + U/O obbligatori su tutte le partite),
+    `Scommesse` (gioca + le mie giocate), `Schedine`. Componente `SchedinaSelezioni`.
+  - `client.js` riallineato; routing/layout (Calendario + Scommesse, rimosso Regole);
+    rimossi Concorso/Rules. Guida riscritta + screenshot ricatturati in `public/aiuto/`.
+- **Test e2e Playwright full-stack: 16/16 verdi** contro `docker-compose.test.yml`
+  (BE:8081, PG:5434, FE:5174). `seed.ts`/`flow.spec.ts`/`auth.spec.ts` riallineati.
+- **Deploy in produzione** (`https://fantarole.zaknafein.ovh`): PR BE #6 + PR FE #4
+  mergiate su `main` (`gh pr merge --admin`), CI deploy OK.
+  - **V18 applicata**: dati di gioco azzerati; **anagrafiche preservate** (verificato:
+    3 leghe, 53 squadre, 980 giocatori).
+  - Endpoint verificati: `/api/admin/giornate` → 200 (login admin); vecchi
+    `/api/(admin/)concorsi` → 404; FE HTTPS 200.
+
+> Follow-up minore (non bloccante): la CI di entrambi i repo usa ancora action su
+> Node.js 20 (checkout/setup-java/docker) — da bumpare prima di giugno 2026.
