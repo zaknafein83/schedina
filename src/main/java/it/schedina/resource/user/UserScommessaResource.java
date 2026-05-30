@@ -1,11 +1,9 @@
 package it.schedina.resource.user;
 
 import it.schedina.dto.GiocataDto;
+import it.schedina.dto.GiocataPartitaDto;
 import it.schedina.dto.ScommessaDto;
-import it.schedina.entity.BetOption;
-import it.schedina.entity.Giocata;
-import it.schedina.entity.Scommessa;
-import it.schedina.entity.User;
+import it.schedina.entity.*;
 import it.schedina.service.AuthService;
 import it.schedina.service.ScommessaResolutionService;
 import jakarta.inject.Inject;
@@ -25,7 +23,8 @@ public class UserScommessaResource {
     @Inject AuthService auth;
     @Inject ScommessaResolutionService resolution;
 
-    /** Scommesse aperte giocabili (fine stagione + di giornata). */
+    // ---- Fine campionato ----
+
     @GET
     @Transactional
     public List<ScommessaDto.ScommessaResponse> open(@HeaderParam("Authorization") String token) {
@@ -35,7 +34,6 @@ public class UserScommessaResource {
                 .toList();
     }
 
-    /** Le giocate dell'utente. */
     @GET
     @Path("/mine")
     @Transactional
@@ -52,6 +50,27 @@ public class UserScommessaResource {
         return Response.status(201).entity(toResponse(g)).build();
     }
 
+    // ---- Di partita ----
+
+    @POST
+    @Path("/partita")
+    @Transactional
+    public Response placePartita(@HeaderParam("Authorization") String token, @Valid GiocataPartitaDto.GiocataPartitaRequest req) {
+        User user = auth.requireAuth(token);
+        GiocataPartita g = resolution.placeGiocataPartita(user.id, req.matchId(), req.market(), req.prediction());
+        return Response.status(201).entity(toPartitaResponse(g)).build();
+    }
+
+    @GET
+    @Path("/partita/mine")
+    @Transactional
+    public List<GiocataPartitaDto.GiocataPartitaResponse> minePartita(@HeaderParam("Authorization") String token) {
+        User user = auth.requireAuth(token);
+        return GiocataPartita.findByUser(user.id).stream().map(this::toPartitaResponse).toList();
+    }
+
+    // ---- mappers ----
+
     private GiocataDto.GiocataResponse toResponse(Giocata g) {
         Scommessa b = Scommessa.findById(g.scommessaId);
         String label = b != null ? b.label : "?";
@@ -60,7 +79,38 @@ public class UserScommessaResource {
             if (o.ref.equals(g.choiceRef)) { choiceLabel = o.label; break; }
         }
         return new GiocataDto.GiocataResponse(g.id, g.scommessaId, label,
-                b != null ? b.scope : null, g.choiceRef, choiceLabel, g.isCorrect,
+                b != null ? b.market : null, g.choiceRef, choiceLabel, g.isCorrect,
                 b != null ? b.status : null, b != null ? b.officialResultRef : null);
+    }
+
+    private GiocataPartitaDto.GiocataPartitaResponse toPartitaResponse(GiocataPartita g) {
+        Match m = Match.findById(g.matchId);
+        String home = m != null ? teamName(m.homeTeamId) : "?";
+        String away = m != null ? teamName(m.awayTeamId) : "?";
+        String label = predictionLabel(g.market, g.prediction);
+        return new GiocataPartitaDto.GiocataPartitaResponse(g.id, g.matchId, home, away,
+                g.market, g.prediction, label, g.isCorrect);
+    }
+
+    private String predictionLabel(Scommessa.Market market, String prediction) {
+        return switch (market) {
+            case GOAL_NOGOAL -> prediction.equals("GOAL") ? "Gol" : "No gol";
+            case WINNER -> teamName(parseLong(prediction));
+            case FIRST_SCORER -> {
+                Player p = Player.findById(parseLong(prediction));
+                yield p != null ? p.firstName + " " + p.lastName : prediction;
+            }
+            default -> prediction; // EXACT_SCORE
+        };
+    }
+
+    private String teamName(Long id) {
+        if (id == null) return "?";
+        Team t = Team.findById(id);
+        return t != null ? t.name : "?";
+    }
+
+    private long parseLong(String s) {
+        try { return Long.parseLong(s); } catch (Exception e) { return -1L; }
     }
 }

@@ -8,8 +8,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 /**
- * E2E del modello Calendario/Giornate: schedina 1X2+U/O per giornata
- * e scommessa extra con giocata indipendente. Gira contro Postgres (Dev Services).
+ * E2E del redesign #3: giornata di campionato per-lega → Concorso (selezione partite) →
+ * Schedina utente; scommesse di partita (auto) e di fine campionato (manuale).
  */
 @QuarkusTest
 class GiornataFlowTest {
@@ -27,120 +27,90 @@ class GiornataFlowTest {
     }
 
     @Test
-    void schedina_1x2_uo_vincente() {
+    void concorso_schedina_vincente() {
         String auth = "Bearer " + token();
         long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
         long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
         long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
 
         long g = post(auth, "/admin/giornate",
-                "{\"name\":\"Giornata test\",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\",\"winningThresholds\":[2]}", 201);
+                "{\"leagueId\":" + leagueId + ",\"name\":\"Serie X g.1\",\"number\":1}", 201);
         long m = post(auth, "/admin/matches",
                 "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}", 201);
 
-        given().header("Authorization", auth).contentType("application/json")
-                .post("/admin/giornate/" + g + "/open").then().statusCode(200).body("status", equalTo("OPEN"));
+        long ruleId = post(auth, "/admin/rules", "{\"name\":\"R " + System.nanoTime() + "\",\"winningThresholds\":[2]}", 201);
+        long c = post(auth, "/admin/concorsi",
+                "{\"name\":\"Turno 1\",\"number\":1,\"ruleId\":" + ruleId + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
 
+        // seleziona la partita nel concorso
+        given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + m + "}")
+                .post("/admin/concorsi/" + c + "/matches").then().statusCode(200);
+        // apri
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/open").then().statusCode(200).body("status", equalTo("OPEN"));
+
+        // l'utente compila la schedina (1 + Over, coerenti con 2-1)
         long sched = post(auth, "/schedine",
-                "{\"giornataId\":" + g + ",\"pronostici\":[{\"matchId\":" + m + ",\"choice1x2\":\"1\",\"choiceUo\":\"O\"}]}", 201);
+                "{\"concorsoId\":" + c + ",\"pronostici\":[{\"matchId\":" + m + ",\"choice1x2\":\"1\",\"choiceUo\":\"O\"}]}", 201);
         given().header("Authorization", auth).contentType("application/json")
                 .post("/schedine/" + sched + "/confirm").then().statusCode(200).body("status", equalTo("CONFIRMED"));
 
-        given().header("Authorization", auth).contentType("application/json")
-                .post("/admin/giornate/" + g + "/close").then().statusCode(200);
-
-        // 2-1 → 1X2 = "1", totale 3 > 2.5 → Over
-        given().header("Authorization", auth).contentType("application/json")
-                .body("{\"homeScore\":2,\"awayScore\":1}")
+        given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":2,\"awayScore\":1}")
                 .when().put("/admin/matches/" + m + "/result").then().statusCode(200);
-
         given().header("Authorization", auth).contentType("application/json")
-                .post("/admin/giornate/" + g + "/process").then().statusCode(200)
+                .post("/admin/concorsi/" + c + "/close").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/process").then().statusCode(200)
                 .body("allScored", is(true)).body("winners", is(1)).body("status", equalTo("PROCESSED"));
 
         given().header("Authorization", auth).get("/schedine/" + sched).then().statusCode(200)
-                .body("status", equalTo("WINNING")).body("correctCount", is(2))
-                .body("selezioni[0].correct1x2", is(true)).body("selezioni[0].correctUo", is(true));
+                .body("status", equalTo("WINNING")).body("correctCount", is(2));
     }
 
     @Test
-    void schedina_vince_con_regola_riusabile() {
+    void scommessa_di_partita_vincitore_auto() {
         String auth = "Bearer " + token();
         long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
-        long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
-        long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
-
-        // Regola riusabile con soglia 2 (entrambi i pronostici corretti su 1 partita)
-        long ruleId = post(auth, "/admin/rules", "{\"name\":\"Regola " + System.nanoTime() + "\",\"winningThresholds\":[2]}", 201);
-
-        // Giornata SENZA winningThresholds locali: le soglie vengono dalla regola
+        long home = post(auth, "/admin/teams", "{\"name\":\"Alpha\",\"leagueId\":" + leagueId + "}", 201);
+        long away = post(auth, "/admin/teams", "{\"name\":\"Beta\",\"leagueId\":" + leagueId + "}", 201);
         long g = post(auth, "/admin/giornate",
-                "{\"name\":\"Giornata regola\",\"ruleId\":" + ruleId + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
+                "{\"leagueId\":" + leagueId + ",\"name\":\"g\",\"number\":1}", 201);
         long m = post(auth, "/admin/matches",
-                "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}", 201);
-
-        // la risposta giornata espone ruleName e le soglie risolte dalla regola
-        given().header("Authorization", auth).get("/admin/giornate/" + g).then().statusCode(200)
-                .body("ruleId", is((int) ruleId)).body("winningThresholds[0]", is(2));
-
-        given().header("Authorization", auth).contentType("application/json")
-                .post("/admin/giornate/" + g + "/open").then().statusCode(200);
-        long sched = post(auth, "/schedine",
-                "{\"giornataId\":" + g + ",\"pronostici\":[{\"matchId\":" + m + ",\"choice1x2\":\"1\",\"choiceUo\":\"O\"}]}", 201);
-        given().header("Authorization", auth).contentType("application/json").post("/schedine/" + sched + "/confirm").then().statusCode(200);
-        given().header("Authorization", auth).contentType("application/json").post("/admin/giornate/" + g + "/close").then().statusCode(200);
-        given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":2,\"awayScore\":1}")
-                .when().put("/admin/matches/" + m + "/result").then().statusCode(200);
-        given().header("Authorization", auth).contentType("application/json").post("/admin/giornate/" + g + "/process")
-                .then().statusCode(200).body("winners", is(1));
-
-        given().header("Authorization", auth).get("/schedine/" + sched).then().statusCode(200)
-                .body("status", equalTo("WINNING"));
-    }
-
-    @Test
-    void giornata_chiusa_si_puo_riaprire() {
-        String auth = "Bearer " + token();
-        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
-        long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
-        long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
-        long g = post(auth, "/admin/giornate",
-                "{\"name\":\"Giornata riapri\",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
-        post(auth, "/admin/matches",
                 "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\"}", 201);
 
-        given().header("Authorization", auth).contentType("application/json").post("/admin/giornate/" + g + "/open").then().statusCode(200);
-        given().header("Authorization", auth).contentType("application/json").post("/admin/giornate/" + g + "/close").then().statusCode(200).body("status", equalTo("CLOSED"));
-        // riapertura
-        given().header("Authorization", auth).contentType("application/json").post("/admin/giornate/" + g + "/reopen").then().statusCode(200).body("status", equalTo("OPEN"));
-        // una giornata in DRAFT non è riapribile
-        long g2 = post(auth, "/admin/giornate",
-                "{\"name\":\"Giornata draft\",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
-        given().header("Authorization", auth).contentType("application/json").post("/admin/giornate/" + g2 + "/reopen").then().statusCode(400);
+        // l'utente scommette: vince la squadra di casa
+        given().header("Authorization", auth).contentType("application/json")
+                .body("{\"matchId\":" + m + ",\"market\":\"WINNER\",\"prediction\":\"" + home + "\"}")
+                .when().post("/scommesse/partita").then().statusCode(201);
+
+        // punteggio 3-0 → vince casa → giocata corretta (risoluzione automatica)
+        given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":3,\"awayScore\":0}")
+                .when().put("/admin/matches/" + m + "/result").then().statusCode(200);
+
+        given().header("Authorization", auth).get("/scommesse/partita/mine").then().statusCode(200)
+                .body("find { it.matchId == " + m + " }.isCorrect", is(true));
     }
 
     @Test
-    void scommessa_extra_con_giocata() {
+    void scommessa_fine_campionato_manuale() {
         String auth = "Bearer " + token();
         long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
         long teamA = post(auth, "/admin/teams", "{\"name\":\"Alpha\",\"leagueId\":" + leagueId + "}", 201);
-        long teamB = post(auth, "/admin/teams", "{\"name\":\"Beta\",\"leagueId\":" + leagueId + "}", 201);
+        long pA = post(auth, "/admin/players", "{\"firstName\":\"Bomber\",\"lastName\":\"A\",\"teamId\":" + teamA + "}", 201);
+        long pB = post(auth, "/admin/players", "{\"firstName\":\"Bomber\",\"lastName\":\"B\",\"teamId\":" + teamA + "}", 201);
 
         long bet = post(auth, "/admin/scommesse",
-                "{\"scope\":\"SEASON\",\"label\":\"Vincitore\",\"market\":\"WINNER\",\"options\":["
-                        + "{\"ref\":\"" + teamA + "\",\"label\":\"Alpha\"},{\"ref\":\"" + teamB + "\",\"label\":\"Beta\"}]}", 201);
+                "{\"label\":\"Capocannoniere\",\"market\":\"TOP_SCORER\",\"options\":["
+                        + "{\"ref\":\"" + pA + "\",\"label\":\"Bomber A\"},{\"ref\":\"" + pB + "\",\"label\":\"Bomber B\"}]}", 201);
 
-        // l'utente (admin come utente) gioca su teamA
         given().header("Authorization", auth).contentType("application/json")
-                .body("{\"scommessaId\":" + bet + ",\"choiceRef\":\"" + teamA + "\"}")
+                .body("{\"scommessaId\":" + bet + ",\"choiceRef\":\"" + pA + "\"}")
                 .when().post("/scommesse").then().statusCode(201);
 
-        // admin risolve: vince teamA
         given().header("Authorization", auth).contentType("application/json")
-                .body("{\"officialResultRef\":\"" + teamA + "\"}")
+                .body("{\"officialResultRef\":\"" + pA + "\"}")
                 .when().patch("/admin/scommesse/" + bet + "/resolve").then().statusCode(200).body("status", equalTo("RESOLVED"));
 
-        // la giocata risulta corretta
         given().header("Authorization", auth).get("/scommesse/mine").then().statusCode(200)
                 .body("find { it.scommessaId == " + bet + " }.isCorrect", is(true));
     }

@@ -32,6 +32,14 @@ public class Match extends PanacheEntityBase {
     @Column(name = "giornata_id")
     public Long giornataId;
 
+    /** Concorso che ha selezionato questa partita per la schedina (null = non selezionata). */
+    @Column(name = "concorso_id")
+    public Long concorsoId;
+
+    /** Giocatore che ha segnato il primo gol (per la scommessa "Primo marcatore"), impostato a mano. */
+    @Column(name = "first_scorer_player_id")
+    public Long firstScorerPlayerId;
+
     @Column(name = "scheduled_at", nullable = false)
     public LocalDateTime scheduledAt;
 
@@ -67,8 +75,18 @@ public class Match extends PanacheEntityBase {
         return (homeScore + awayScore) > line ? "O" : "U";
     }
 
+    /** Vincitore 1/2 dal punteggio (null se pareggio o senza punteggio). */
+    public Long winnerTeamId() {
+        if (!hasScore() || homeScore.equals(awayScore)) return null;
+        return homeScore > awayScore ? homeTeamId : awayTeamId;
+    }
+
     public static List<Match> findByGiornata(Long giornataId) {
         return find("giornataId = ?1 order by id", giornataId).list();
+    }
+
+    public static List<Match> findByConcorso(Long concorsoId) {
+        return find("concorsoId = ?1 order by id", concorsoId).list();
     }
 
     public static List<Match> findByLeague(Long leagueId) {

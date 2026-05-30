@@ -21,13 +21,13 @@ public class AdminSchedinaResource {
     @Inject AuthService auth;
 
     @GET
-    @Path("/by-giornata")
+    @Path("/by-concorso")
     @Transactional
-    public List<SchedinaDto.SchedinaSummary> byGiornata(
-            @HeaderParam("Authorization") String token, @QueryParam("giornataId") Long giornataId) {
+    public List<SchedinaDto.SchedinaSummary> byConcorso(
+            @HeaderParam("Authorization") String token, @QueryParam("concorsoId") Long concorsoId) {
         auth.requireAdminOrMod(token);
-        if (giornataId == null) throw new BadRequestException("giornataId obbligatorio");
-        return Schedina.findByGiornata(giornataId).stream().map(SchedinaDto.SchedinaSummary::from).toList();
+        if (concorsoId == null) throw new BadRequestException("concorsoId obbligatorio");
+        return Schedina.findByConcorso(concorsoId).stream().map(SchedinaDto.SchedinaSummary::from).toList();
     }
 
     @GET
@@ -53,7 +53,7 @@ public class AdminSchedinaResource {
                     m != null ? m.resultUO() : null,
                     m != null ? m.overUnderLine : null));
         }
-        return new SchedinaDto.SchedinaDetail(s.id, s.userId, s.giornataId, s.status,
+        return new SchedinaDto.SchedinaDetail(s.id, s.userId, s.concorsoId, s.status,
                 s.correctCount, s.isWinner, sels);
     }
 

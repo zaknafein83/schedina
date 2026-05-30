@@ -1,7 +1,8 @@
 package it.schedina.service;
 
-import it.schedina.entity.Giornata;
+import it.schedina.entity.Concorso;
 import it.schedina.entity.Notification;
+import it.schedina.entity.Rule;
 import it.schedina.entity.Schedina;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
@@ -16,14 +17,16 @@ import java.util.Map;
 public class NotificationService {
 
     @Transactional
-    public Map<String, Integer> sendGiornataNotifications(Long giornataId) {
-        Giornata g = Giornata.findById(giornataId);
-        if (g == null || g.status != Giornata.Status.PROCESSED) {
+    public Map<String, Integer> sendConcorsoNotifications(Long concorsoId) {
+        Concorso c = Concorso.findById(concorsoId);
+        if (c == null || c.status != Concorso.Status.PROCESSED) {
             return Map.of("sent", 0, "skipped", 0, "errors", 0);
         }
-        List<Integer> thresholds = g.winningThresholds.stream().sorted((a, b) -> b - a).toList();
-        List<Schedina> winners = Schedina.find("giornataId = ?1 and status = ?2",
-                giornataId, Schedina.Status.WINNING).list();
+        Rule rule = c.ruleId != null ? Rule.findById(c.ruleId) : null;
+        List<Integer> base = rule != null ? rule.winningThresholds : c.winningThresholds;
+        List<Integer> thresholds = base.stream().sorted((a, b) -> b - a).toList();
+        List<Schedina> winners = Schedina.find("concorsoId = ?1 and status = ?2",
+                concorsoId, Schedina.Status.WINNING).list();
 
         int sent = 0, skipped = 0, errors = 0;
         for (Schedina s : winners) {
@@ -37,7 +40,7 @@ public class NotificationService {
                     n.schedinaId = s.id;
                     n.threshold = threshold;
                     n.message = "Congratulazioni! La tua schedina #" + s.id +
-                            " per la " + g.name + " ha totalizzato " + correct +
+                            " per il concorso " + c.name + " ha totalizzato " + correct +
                             " punti, raggiungendo la soglia di " + threshold + ".";
                     n.status = Notification.Status.SENT;
                     n.sentAt = LocalDateTime.now();

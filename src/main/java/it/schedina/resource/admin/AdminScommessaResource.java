@@ -15,6 +15,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.List;
 
+/** Catalogo delle scommesse di FINE CAMPIONATO (le scommesse di partita sono guidate dall'utente). */
 @Path("/admin/scommesse")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -31,15 +32,9 @@ public class AdminScommessaResource {
     @Transactional
     public List<ScommessaDto.ScommessaResponse> list(
             @HeaderParam("Authorization") String token,
-            @QueryParam("giornataId") Long giornataId,
-            @QueryParam("seasonId") Long seasonId,
-            @QueryParam("matchId") Long matchId) {
+            @QueryParam("seasonId") Long seasonId) {
         auth.requireAdminOrMod(token);
-        List<Scommessa> bets;
-        if (giornataId != null) bets = Scommessa.findByGiornata(giornataId);
-        else if (seasonId != null) bets = Scommessa.findBySeason(seasonId);
-        else if (matchId != null) bets = Scommessa.findByMatch(matchId);
-        else bets = Scommessa.listAll();
+        List<Scommessa> bets = seasonId != null ? Scommessa.findBySeason(seasonId) : Scommessa.listAll();
         return bets.stream().map(this::resp).toList();
     }
 

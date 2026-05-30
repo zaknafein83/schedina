@@ -7,34 +7,29 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Scommessa extra (catalogo), giocata con flow separato dalla schedina.
- * Scope: SEASON (fine stagione) o GIORNATA (legata a una giornata, eventualmente a una partita).
+ * Scommessa di FINE CAMPIONATO (catalogo creato dall'admin, con candidati = BetOption).
+ * L'utente sceglie un'opzione (Giocata); l'admin risolve a mano.
+ * Le scommesse DI PARTITA non passano da qui: sono {@link GiocataPartita} (sempre disponibili).
+ * L'enum {@link Market} resta completo perché riusato anche dalle giocate di partita.
  */
 @Entity
 @Table(name = "bets")
 public class Scommessa extends PanacheEntityBase {
 
-    public enum Scope { SEASON, GIORNATA }
-
     public enum Market {
-        GOAL_NOGOAL, FIRST_SCORER, EXACT_SCORE,
-        WINNER, TOP_SCORER, TOP_ASSIST, CLEAN_SHEET_TEAM,
-        BEST_GOALKEEPER, MOST_GOALS_FOR, LEAST_GOALS_AGAINST
+        // di partita
+        GOAL_NOGOAL, EXACT_SCORE, WINNER, FIRST_SCORER,
+        // di fine campionato
+        TOP_SCORER, TOP_ASSIST, BEST_GOALKEEPER, CLEAN_SHEET, MOST_GOALS_FOR, LEAST_GOALS_AGAINST
     }
 
     public enum TargetKind { TOKEN, TEAM, PLAYER }
-
-    public enum ResolutionMode { AUTO, MANUAL }
 
     public enum Status { OPEN, RESOLVED, VOID }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    public Scope scope = Scope.SEASON;
 
     @Column(nullable = false, length = 200)
     public String label;
@@ -43,25 +38,14 @@ public class Scommessa extends PanacheEntityBase {
     @Column(nullable = false, length = 30)
     public Market market;
 
-    // --- Contesto secondo lo scope ---
     @Column(name = "season_id")
     public Long seasonId;
-
-    @Column(name = "giornata_id")
-    public Long giornataId;
-
-    @Column(name = "match_id")
-    public Long matchId;
 
     @Column(name = "tournament_id")
     public Long tournamentId;
 
     @Column(name = "league_id")
     public Long leagueId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "resolution_mode", nullable = false, length = 10)
-    public ResolutionMode resolutionMode = ResolutionMode.MANUAL;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -83,30 +67,26 @@ public class Scommessa extends PanacheEntityBase {
     public static TargetKind targetKindOf(Market m) {
         return switch (m) {
             case GOAL_NOGOAL, EXACT_SCORE -> TargetKind.TOKEN;
-            case WINNER, CLEAN_SHEET_TEAM, MOST_GOALS_FOR, LEAST_GOALS_AGAINST -> TargetKind.TEAM;
-            case FIRST_SCORER, TOP_SCORER, TOP_ASSIST, BEST_GOALKEEPER -> TargetKind.PLAYER;
+            case WINNER, MOST_GOALS_FOR, LEAST_GOALS_AGAINST -> TargetKind.TEAM;
+            case FIRST_SCORER, TOP_SCORER, TOP_ASSIST, BEST_GOALKEEPER, CLEAN_SHEET -> TargetKind.PLAYER;
         };
     }
 
-    /** AUTO = risolvibile dal punteggio della partita collegata (es. gol/no gol). */
-    public static boolean isAutoMarket(Market m) {
-        return m == Market.GOAL_NOGOAL;
+    /** Mercati di fine campionato (catalogo). */
+    public static boolean isSeasonMarket(Market m) {
+        return switch (m) {
+            case TOP_SCORER, TOP_ASSIST, BEST_GOALKEEPER, CLEAN_SHEET, MOST_GOALS_FOR, LEAST_GOALS_AGAINST -> true;
+            default -> false;
+        };
     }
 
-    public static ResolutionMode defaultResolution(Market m) {
-        return isAutoMarket(m) ? ResolutionMode.AUTO : ResolutionMode.MANUAL;
-    }
-
-    public static List<Scommessa> findByGiornata(Long giornataId) {
-        return find("scope = ?1 and giornataId = ?2 order by id", Scope.GIORNATA, giornataId).list();
+    /** Mercati che riguardano i portieri (picker filtrato ai soli GK). */
+    public static boolean isGoalkeeperMarket(Market m) {
+        return m == Market.BEST_GOALKEEPER || m == Market.CLEAN_SHEET;
     }
 
     public static List<Scommessa> findBySeason(Long seasonId) {
-        return find("scope = ?1 and seasonId = ?2 order by id", Scope.SEASON, seasonId).list();
-    }
-
-    public static List<Scommessa> findByMatch(Long matchId) {
-        return find("matchId", matchId).list();
+        return find("seasonId = ?1 order by id", seasonId).list();
     }
 
     public static List<Scommessa> findOpen() {
