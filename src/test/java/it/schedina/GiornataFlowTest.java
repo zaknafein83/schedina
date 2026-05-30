@@ -99,6 +99,27 @@ class GiornataFlowTest {
     }
 
     @Test
+    void giornata_chiusa_si_puo_riaprire() {
+        String auth = "Bearer " + token();
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
+        long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
+        long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
+        long g = post(auth, "/admin/giornate",
+                "{\"name\":\"Giornata riapri\",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
+        post(auth, "/admin/matches",
+                "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\"}", 201);
+
+        given().header("Authorization", auth).contentType("application/json").post("/admin/giornate/" + g + "/open").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json").post("/admin/giornate/" + g + "/close").then().statusCode(200).body("status", equalTo("CLOSED"));
+        // riapertura
+        given().header("Authorization", auth).contentType("application/json").post("/admin/giornate/" + g + "/reopen").then().statusCode(200).body("status", equalTo("OPEN"));
+        // una giornata in DRAFT non è riapribile
+        long g2 = post(auth, "/admin/giornate",
+                "{\"name\":\"Giornata draft\",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
+        given().header("Authorization", auth).contentType("application/json").post("/admin/giornate/" + g2 + "/reopen").then().statusCode(400);
+    }
+
+    @Test
     void scommessa_extra_con_giocata() {
         String auth = "Bearer " + token();
         long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
