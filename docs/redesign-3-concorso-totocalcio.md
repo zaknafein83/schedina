@@ -1,6 +1,6 @@
 # Redesign #3 — Calendario per-lega, Concorso Totocalcio, Schedina utente
 
-> Stato: **PROPOSTO / da implementare** (consolidato il 2026-05-30 dalle indicazioni dell'utente).
+> Stato: **✅ IMPLEMENTATO e DEPLOYATO IN PRODUZIONE (2026-05-31)** — V20 applicata (anagrafiche preservate), e2e 17/17. (consolidato il 2026-05-30 dalle indicazioni dell'utente).
 > Corregge un equivoco del redesign #2: lì la "Giornata" era la cosa giocabile e mista.
 > Qui si separano nettamente **calendario**, **concorso giocabile** e **bollettino utente**.
 
