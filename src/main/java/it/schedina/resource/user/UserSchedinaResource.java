@@ -29,8 +29,7 @@ public class UserSchedinaResource {
     @Transactional
     public List<SchedinaDto.SchedinaSummary> mine(@HeaderParam("Authorization") String token) {
         User user = auth.requireAuth(token);
-        return Schedina.findByUser(user.id).stream()
-                .map(SchedinaDto.SchedinaSummary::from).toList();
+        return Schedina.findByUser(user.id).stream().map(SchedinaDto.SchedinaSummary::from).toList();
     }
 
     @POST
@@ -72,7 +71,7 @@ public class UserSchedinaResource {
             return Response.status(400).entity(Map.of("error", "Schedina non annullabile in stato " + s.status)).build();
         }
         s.status = Schedina.Status.CANCELLED;
-        s.confirmedAt = s.confirmedAt != null ? s.confirmedAt : LocalDateTime.now();
+        if (s.confirmedAt == null) s.confirmedAt = LocalDateTime.now();
         s.persist();
         return Response.noContent().build();
     }

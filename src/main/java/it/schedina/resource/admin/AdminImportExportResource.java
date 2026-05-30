@@ -42,14 +42,6 @@ public class AdminImportExportResource {
     }
 
     @GET
-    @Path("/export/rules")
-    @Transactional
-    public Response exportRules(@HeaderParam("Authorization") String token) {
-        auth.requireAdmin(token);
-        return Response.ok(Rule.<Rule>listAll().stream().map(this::ruleToMap).toList()).build();
-    }
-
-    @GET
     @Path("/export/players")
     @Transactional
     public Response exportPlayers(@HeaderParam("Authorization") String token) {
@@ -66,7 +58,6 @@ public class AdminImportExportResource {
         all.put("leagues",  League.<League>listAll().stream().map(this::leagueToMap).toList());
         all.put("teams",    Team.<Team>listAll().stream().map(this::teamToMap).toList());
         all.put("players",  Player.<Player>listAll().stream().map(this::playerToMap).toList());
-        all.put("rules",    Rule.<Rule>listAll().stream().map(this::ruleToMap).toList());
         return Response.ok(all).build();
     }
 
@@ -155,32 +146,6 @@ public class AdminImportExportResource {
         return Response.ok(Map.of("imported", count, "entity", "players")).build();
     }
 
-    @POST
-    @Path("/import/rules")
-    @Transactional
-    public Response importRules(@HeaderParam("Authorization") String token, String body) {
-        auth.requireAdmin(token);
-        List<Map<String, String>> rows = parseBody(body);
-        int count = 0;
-        for (Map<String, String> row : rows) {
-            String name = row.get("name");
-            if (name == null || name.isBlank()) continue;
-            Rule r = Rule.<Rule>find("name", name).firstResult();
-            if (r == null) r = new Rule();
-            r.name     = name;
-            r.leagueId = resolveLeagueId(row);
-            if (row.containsKey("description"))            r.description           = row.get("description");
-            if (hasValue(row, "requiredBets"))            r.requiredBets          = Integer.parseInt(row.get("requiredBets"));
-            if (hasValue(row, "winningThresholds"))       r.winningThresholds     = parseIntList(row.get("winningThresholds"));
-            if (hasValue(row, "maxSchedinePerUser"))      r.maxSchedinePerUser    = Integer.parseInt(row.get("maxSchedinePerUser"));
-            if (row.containsKey("fullCompletionRequired"))r.fullCompletionRequired = Boolean.parseBoolean(row.get("fullCompletionRequired"));
-            if (row.containsKey("isActive"))              r.isActive              = Boolean.parseBoolean(row.get("isActive"));
-            r.persist();
-            count++;
-        }
-        return Response.ok(Map.of("imported", count, "entity", "rules")).build();
-    }
-
     // ═══════════════════════════════════════════════════════════════════════════
     // MAP HELPERS
     // ═══════════════════════════════════════════════════════════════════════════
@@ -215,18 +180,6 @@ public class AdminImportExportResource {
         m.put("leagueName", l != null ? l.name : null);
         m.put("role", p.role != null ? p.role.name() : null);
         m.put("isActive", p.isActive);
-        return m;
-    }
-
-    private Map<String, Object> ruleToMap(Rule r) {
-        League l = r.leagueId != null ? League.findById(r.leagueId) : null;
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("id", r.id); m.put("name", r.name); m.put("description", r.description);
-        m.put("leagueId", r.leagueId); m.put("leagueName", l != null ? l.name : null);
-        m.put("requiredBets", r.requiredBets); m.put("winningThresholds", r.winningThresholds);
-        m.put("maxSchedinePerUser", r.maxSchedinePerUser);
-        m.put("fullCompletionRequired", r.fullCompletionRequired);
-        m.put("isActive", r.isActive);
         return m;
     }
 

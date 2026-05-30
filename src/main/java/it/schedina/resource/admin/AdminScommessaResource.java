@@ -2,6 +2,7 @@ package it.schedina.resource.admin;
 
 import it.schedina.dto.ScommessaDto;
 import it.schedina.entity.BetOption;
+import it.schedina.entity.Giocata;
 import it.schedina.entity.Scommessa;
 import it.schedina.service.AuthService;
 import it.schedina.service.ScommessaResolutionService;
@@ -30,11 +31,13 @@ public class AdminScommessaResource {
     @Transactional
     public List<ScommessaDto.ScommessaResponse> list(
             @HeaderParam("Authorization") String token,
-            @QueryParam("concorsoId") Long concorsoId,
+            @QueryParam("giornataId") Long giornataId,
+            @QueryParam("seasonId") Long seasonId,
             @QueryParam("matchId") Long matchId) {
         auth.requireAdminOrMod(token);
         List<Scommessa> bets;
-        if (concorsoId != null) bets = Scommessa.findByConcorso(concorsoId);
+        if (giornataId != null) bets = Scommessa.findByGiornata(giornataId);
+        else if (seasonId != null) bets = Scommessa.findBySeason(seasonId);
         else if (matchId != null) bets = Scommessa.findByMatch(matchId);
         else bets = Scommessa.listAll();
         return bets.stream().map(this::resp).toList();
@@ -61,10 +64,8 @@ public class AdminScommessaResource {
     @PATCH
     @Path("/{id}/resolve")
     @Transactional
-    public ScommessaDto.ScommessaResponse resolve(
-            @HeaderParam("Authorization") String token,
-            @PathParam("id") Long id,
-            @Valid ScommessaDto.ResolveRequest req) {
+    public ScommessaDto.ScommessaResponse resolve(@HeaderParam("Authorization") String token,
+            @PathParam("id") Long id, @Valid ScommessaDto.ResolveRequest req) {
         auth.requireAdminOrMod(token);
         return resp(resolution.resolveManual(id, req.officialResultRef()));
     }
@@ -92,6 +93,7 @@ public class AdminScommessaResource {
         auth.requireAdminOrMod(token);
         Scommessa b = Scommessa.findById(id);
         if (b == null) throw new NotFoundException();
+        Giocata.delete("scommessaId", id);
         BetOption.deleteByBet(id);
         b.delete();
         return Response.noContent().build();

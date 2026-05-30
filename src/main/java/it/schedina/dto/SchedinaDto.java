@@ -12,32 +12,38 @@ public final class SchedinaDto {
 
     private SchedinaDto() {}
 
-    public record SelezioneInput(@NotNull Long betId, @NotBlank String choiceRef) {}
-
-    public record CreateRequest(
-            @NotNull Long concorsoId,
-            @NotEmpty List<SelezioneInput> selezioni
+    /** Pronostico su una partita: esito 1X2 + Under/Over. */
+    public record PronosticoInput(
+            @NotNull Long matchId,
+            @NotBlank String choice1x2,
+            @NotBlank String choiceUo
     ) {}
 
-    public record SelezioneResponse(
-            Long betId, String betLabel, String choiceRef, String choiceLabel,
-            Boolean isCorrect, String officialResultRef
+    public record CreateRequest(
+            @NotNull Long giornataId,
+            @NotEmpty List<PronosticoInput> pronostici
     ) {}
 
     public record SchedinaSummary(
-            Long id, Long userId, Long concorsoId, Schedina.Status status,
+            Long id, Long userId, Long giornataId, Schedina.Status status,
             Integer correctCount, Boolean isWinner,
             LocalDateTime confirmedAt, LocalDateTime createdAt
     ) {
         public static SchedinaSummary from(Schedina s) {
-            return new SchedinaSummary(s.id, s.userId, s.concorsoId, s.status,
+            return new SchedinaSummary(s.id, s.userId, s.giornataId, s.status,
                     s.correctCount, s.isWinner, s.confirmedAt, s.createdAt);
         }
     }
 
+    public record SelezioneResponse(
+            Long matchId, String home, String away,
+            String choice1x2, String choiceUo,
+            Boolean correct1x2, Boolean correctUo,
+            String result1x2, String resultUO, Double overUnderLine
+    ) {}
+
     public record SchedinaDetail(
-            Long id, Long userId, Long concorsoId, Schedina.Status status,
-            Integer correctCount, Boolean isWinner, LocalDateTime confirmedAt,
-            List<SelezioneResponse> selezioni
+            Long id, Long userId, Long giornataId, Schedina.Status status,
+            Integer correctCount, Boolean isWinner, List<SelezioneResponse> selezioni
     ) {}
 }

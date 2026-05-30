@@ -1,0 +1,48 @@
+# Stack isolato per i test E2E del frontend.
+# Porte dedicate (5434 postgres, 8081 backend, 5174 FE) per non collidere
+# con il docker-compose.yml di sviluppo né con altri progetti che usano
+# 5433 / 5173 / 8080 sulla stessa macchina.
+# Volume separato (pgdata_test) => DB fresco a ogni `docker compose up`
+# se si fa `down -v` prima.
+services:
+
+  db-test:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       schedina_test
+      POSTGRES_USER:     schedina
+      POSTGRES_PASSWORD: schedina
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U schedina -d schedina_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app-test:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:8080"
+    environment:
+      DB_URL:       jdbc:postgresql://db-test:5432/schedina_test
+      DB_USER:      schedina
+      DB_PASSWORD:  schedina
+      JWT_SECRET:   test-secret-key-must-be-at-least-32-characters-long
+      CORS_ORIGINS: http://localhost:5174,http://localhost:5173
+    depends_on:
+      db-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/q/health/ready || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 40s
+
+volumes:
+  pgdata_test:

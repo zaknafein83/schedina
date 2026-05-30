@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Schedina: pura raccolta di {@link Selezione} di un utente per un {@link Concorso}.
- * Non contiene logica di scommessa: ogni selezione punta a una Scommessa.
+ * Schedina di una {@link Giornata}: per ogni partita l'utente pronostica 1X2 e U/O
+ * (vedi {@link Selezione}). Una sola schedina attiva per utente per giornata.
  */
 @Entity
 @Table(name = "schedine")
@@ -23,8 +23,8 @@ public class Schedina extends PanacheEntityBase {
     @Column(name = "user_id", nullable = false)
     public Long userId;
 
-    @Column(name = "concorso_id", nullable = false)
-    public Long concorsoId;
+    @Column(name = "giornata_id", nullable = false)
+    public Long giornataId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -42,16 +42,16 @@ public class Schedina extends PanacheEntityBase {
     @Column(name = "created_at", nullable = false)
     public LocalDateTime createdAt = LocalDateTime.now();
 
-    public static List<Schedina> findByConcorso(Long concorsoId) {
-        return find("concorsoId", concorsoId).list();
+    public static List<Schedina> findByGiornata(Long giornataId) {
+        return find("giornataId", giornataId).list();
     }
 
     public static List<Schedina> findByUser(Long userId) {
         return find("userId = ?1 order by id desc", userId).list();
     }
 
-    public static long countActiveByUserAndConcorso(Long userId, Long concorsoId) {
-        return count("userId = ?1 and concorsoId = ?2 and status != ?3",
-                userId, concorsoId, Status.CANCELLED);
+    public static Schedina findActiveByUserAndGiornata(Long userId, Long giornataId) {
+        return find("userId = ?1 and giornataId = ?2 and status != ?3",
+                userId, giornataId, Status.CANCELLED).firstResult();
     }
 }

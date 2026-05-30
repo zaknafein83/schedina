@@ -11,128 +11,100 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
- * Motore unico di punteggio delle schedine (sostituisce CouponEngine + SeasonCouponEngine).
- * Punteggio uniforme (1 punto per selezione corretta), scelta singola, vincita a match esatto
- * sulle soglie. Il process() è idempotente e multi-step: usa solo le scommesse risolte.
+ * Motore della schedina di giornata: per ogni partita 1X2 + Under/Over (1 punto ciascuno),
+ * vincita a soglia esatta. process() idempotente, calcola gli esiti dal punteggio delle partite.
  */
 @ApplicationScoped
 public class SchedinaScoringEngine {
 
+    private static final Set<String> VALID_1X2 = Set.of("1", "X", "2");
+    private static final Set<String> VALID_UO = Set.of("U", "O");
+
     @Transactional
     public Schedina createSchedina(Long userId, SchedinaDto.CreateRequest req) {
         LocalDateTime now = LocalDateTime.now();
-
-        Concorso concorso = Concorso.findById(req.concorsoId());
-        if (concorso == null) throw bad("Concorso non trovato");
-        if (concorso.status != Concorso.Status.OPEN) throw bad("Il concorso non è aperto alle giocate");
-        if (now.isAfter(concorso.closeAt)) throw bad("Termine di chiusura del concorso superato");
-
-        Rule rule = concorso.rule();
-        if (rule == null) throw bad("Regola del concorso non trovata");
-
-        if (rule.maxSchedinePerUser != null) {
-            long existing = Schedina.countActiveByUserAndConcorso(userId, req.concorsoId());
-            if (existing >= rule.maxSchedinePerUser) {
-                throw bad("Numero massimo di schedine per utente raggiunto (" + rule.maxSchedinePerUser + ")");
-            }
+        Giornata g = Giornata.findById(req.giornataId());
+        if (g == null) throw bad("Giornata non trovata");
+        if (g.status != Giornata.Status.OPEN) throw bad("La giornata non è aperta alle giocate");
+        if (now.isAfter(g.closeAt)) throw bad("Termine di chiusura della giornata superato");
+        if (Schedina.findActiveByUserAndGiornata(userId, g.id) != null) {
+            throw bad("Hai già una schedina per questa giornata");
         }
 
-        List<Scommessa> bets = Scommessa.findByConcorso(req.concorsoId());
-        Map<Long, Scommessa> betById = new HashMap<>();
-        for (Scommessa b : bets) betById.put(b.id, b);
+        List<Match> matches = Match.findByGiornata(g.id);
+        if (matches.isEmpty()) throw bad("La giornata non ha partite");
+        Map<Long, Match> byId = new HashMap<>();
+        for (Match m : matches) byId.put(m.id, m);
 
         Set<Long> seen = new HashSet<>();
-        for (var sel : req.selezioni()) {
-            Scommessa b = betById.get(sel.betId());
-            if (b == null) throw bad("La scommessa " + sel.betId() + " non appartiene a questo concorso");
-            if (!seen.add(sel.betId())) throw bad("Scommessa duplicata: " + sel.betId());
-            validateChoice(b, sel.choiceRef());
+        for (var p : req.pronostici()) {
+            Match m = byId.get(p.matchId());
+            if (m == null) throw bad("La partita " + p.matchId() + " non appartiene a questa giornata");
+            if (!seen.add(p.matchId())) throw bad("Partita duplicata: " + p.matchId());
+            if (!VALID_1X2.contains(p.choice1x2())) throw bad("Esito 1X2 non valido per la partita " + p.matchId());
+            if (!VALID_UO.contains(p.choiceUo().toUpperCase())) throw bad("Under/Over non valido per la partita " + p.matchId());
         }
-
-        if (rule.fullCompletionRequired) {
-            if (seen.size() != bets.size()) {
-                List<Long> missing = bets.stream().map(b -> b.id).filter(id -> !seen.contains(id)).toList();
-                throw bad("Schedina incompleta, mancano le scommesse: " + missing);
-            }
-        } else if (req.selezioni().size() != rule.requiredBets) {
-            throw bad("La schedina deve coprire esattamente " + rule.requiredBets +
-                    " scommesse, trovate " + req.selezioni().size());
+        if (seen.size() != matches.size()) {
+            List<Long> missing = matches.stream().map(m -> m.id).filter(x -> !seen.contains(x)).toList();
+            throw bad("Schedina incompleta, mancano le partite: " + missing);
         }
 
         Schedina s = new Schedina();
         s.userId = userId;
-        s.concorsoId = req.concorsoId();
+        s.giornataId = g.id;
         s.persist();
-
-        for (var sel : req.selezioni()) {
-            Selezione se = new Selezione();
-            se.schedinaId = s.id;
-            se.betId = sel.betId();
-            se.choiceRef = sel.choiceRef();
-            se.persist();
+        for (var p : req.pronostici()) {
+            Selezione sel = new Selezione();
+            sel.schedinaId = s.id;
+            sel.matchId = p.matchId();
+            sel.choice1x2 = p.choice1x2().toUpperCase();
+            sel.choiceUo = p.choiceUo().toUpperCase();
+            sel.persist();
         }
         return s;
     }
 
     @Transactional
     public Schedina confirm(Schedina s) {
-        if (s.status != Schedina.Status.DRAFT) {
-            throw bad("Solo le schedine in bozza possono essere confermate");
-        }
-        Concorso c = Concorso.findById(s.concorsoId);
-        if (LocalDateTime.now().isAfter(c.closeAt)) {
-            throw bad("Termine di chiusura del concorso superato");
-        }
+        if (s.status != Schedina.Status.DRAFT) throw bad("Solo le schedine in bozza possono essere confermate");
+        Giornata g = Giornata.findById(s.giornataId);
+        if (LocalDateTime.now().isAfter(g.closeAt)) throw bad("Termine di chiusura della giornata superato");
         s.status = Schedina.Status.CONFIRMED;
         s.confirmedAt = LocalDateTime.now();
         s.persist();
         return s;
     }
 
-    /**
-     * Idempotente. Ricalcola correctCount/isCorrect usando solo le scommesse RESOLVED;
-     * le selezioni di scommesse ancora OPEN restano isCorrect=null. Promuove il concorso a
-     * PROCESSED solo quando TUTTE le scommesse sono risolte o annullate.
-     */
+    /** Idempotente. Calcola 1X2 e U/O dal punteggio delle partite; vincita quando tutte hanno il risultato. */
     @Transactional
-    public Map<String, Object> process(Concorso concorso) {
-        Rule rule = concorso.rule();
-        List<Scommessa> bets = Scommessa.findByConcorso(concorso.id);
-        long settled = bets.stream()
-                .filter(b -> b.status == Scommessa.Status.RESOLVED || b.status == Scommessa.Status.VOID)
-                .count();
-        boolean allSettled = settled == bets.size() && !bets.isEmpty();
-
-        Map<Long, String> officialByBet = new HashMap<>();
-        for (Scommessa b : bets) {
-            if (b.status == Scommessa.Status.RESOLVED && b.officialResultRef != null) {
-                officialByBet.put(b.id, b.officialResultRef);
-            }
-        }
+    public Map<String, Object> process(Giornata g) {
+        List<Match> matches = Match.findByGiornata(g.id);
+        long scored = matches.stream().filter(Match::hasScore).count();
+        boolean allScored = scored == matches.size() && !matches.isEmpty();
+        Map<Long, Match> byId = new HashMap<>();
+        for (Match m : matches) byId.put(m.id, m);
 
         List<Schedina> schedine = Schedina.<Schedina>find(
-                "concorsoId = ?1 and status in ?2",
-                concorso.id,
+                "giornataId = ?1 and status in ?2", g.id,
                 List.of(Schedina.Status.CONFIRMED, Schedina.Status.PROCESSED,
-                        Schedina.Status.WINNING, Schedina.Status.NOT_WINNING)
-        ).list();
+                        Schedina.Status.WINNING, Schedina.Status.NOT_WINNING)).list();
 
         int winners = 0;
         for (Schedina s : schedine) {
             int correct = 0;
             for (Selezione sel : Selezione.findBySchedina(s.id)) {
-                String official = officialByBet.get(sel.betId);
-                if (official == null) {
-                    sel.isCorrect = null;
-                } else {
-                    sel.isCorrect = official.equals(sel.choiceRef);
-                    if (Boolean.TRUE.equals(sel.isCorrect)) correct++;
-                }
+                Match m = byId.get(sel.matchId);
+                String r1 = m != null ? m.result1x2() : null;
+                String ru = m != null ? m.resultUO() : null;
+                sel.correct1x2 = r1 == null ? null : r1.equals(sel.choice1x2);
+                sel.correctUo = ru == null ? null : ru.equals(sel.choiceUo);
+                if (Boolean.TRUE.equals(sel.correct1x2)) correct++;
+                if (Boolean.TRUE.equals(sel.correctUo)) correct++;
                 sel.persist();
             }
             s.correctCount = correct;
-            if (allSettled) {
-                s.isWinner = rule.winningThresholds.contains(correct);
+            if (allScored) {
+                s.isWinner = g.winningThresholds.contains(correct);
                 s.status = s.isWinner ? Schedina.Status.WINNING : Schedina.Status.NOT_WINNING;
                 if (Boolean.TRUE.equals(s.isWinner)) winners++;
             } else {
@@ -140,32 +112,22 @@ public class SchedinaScoringEngine {
             }
             s.persist();
         }
-
-        if (allSettled) {
-            concorso.status = Concorso.Status.PROCESSED;
-            concorso.persist();
+        if (allScored) {
+            g.status = Giornata.Status.PROCESSED;
+            g.persist();
         }
-
         return Map.ofEntries(
-                Map.entry("concorsoId", concorso.id),
-                Map.entry("totalBets", bets.size()),
-                Map.entry("settledBets", (int) settled),
-                Map.entry("allSettled", allSettled),
+                Map.entry("giornataId", g.id),
+                Map.entry("matches", matches.size()),
+                Map.entry("matchesScored", (int) scored),
+                Map.entry("allScored", allScored),
                 Map.entry("schedineProcessed", schedine.size()),
                 Map.entry("winners", winners),
-                Map.entry("status", concorso.status.name())
+                Map.entry("status", g.status.name())
         );
     }
 
-    private void validateChoice(Scommessa bet, String choiceRef) {
-        if (choiceRef == null || choiceRef.isBlank()) throw bad("Scelta vuota per la scommessa " + bet.id);
-        if (!BetOption.existsForBet(bet.id, choiceRef)) {
-            throw bad("Scelta non valida per la scommessa " + bet.id + ": " + choiceRef);
-        }
-    }
-
     private WebApplicationException bad(String msg) {
-        return new WebApplicationException(
-                Response.status(400).entity(Map.of("error", msg)).build());
+        return new WebApplicationException(Response.status(400).entity(Map.of("error", msg)).build());
     }
 }
