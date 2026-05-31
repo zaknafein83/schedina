@@ -65,4 +65,31 @@ class ImportGiornateTest {
                 .body("find { it.leagueName == '" + lega + "' && it.homeTeamName == 'CasaX' }.date", equalTo("2026-09-01"))
                 .body("find { it.leagueName == '" + lega + "' && it.homeTeamName == 'CasaX' }.awayTeamName", equalTo("OspiteX"));
     }
+
+    @Test
+    void import_giornate_fuzzy_match() {
+        String auth = "Bearer " + token();
+        String lega = "FuzzyLega " + System.nanoTime();
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"" + lega + "\"}", 201);
+        post(auth, "/admin/teams", "{\"name\":\"Juventus\",\"leagueId\":" + leagueId + "}", 201);
+        post(auth, "/admin/teams", "{\"name\":\"Napoli FC\",\"leagueId\":" + leagueId + "}", 201);
+
+        // "Juve" ~ Juventus, "napoli" ~ Napoli FC → match fuzzy. "Marziani" → nessun candidato simile.
+        String csv = "leagueName,number,homeTeamName,awayTeamName\n"
+                + lega + ",1,Juve,napoli\n"
+                + lega + ",1,Juventus,Marziani\n";
+
+        given().header("Authorization", auth).contentType("text/plain").body(csv)
+                .when().post("/admin/import/giornate")
+                .then().statusCode(200)
+                .body("imported", is(1))
+                .body("skipped", is(1))
+                .body("skippedDetails[0]", containsString("Marziani"));
+
+        // La partita fuzzy è stata associata alle squadre reali (Juventus - Napoli FC).
+        given().header("Authorization", auth).get("/admin/export/giornate")
+                .then().statusCode(200)
+                .body("find { it.leagueName == '" + lega + "' }.homeTeamName", equalTo("Juventus"))
+                .body("find { it.leagueName == '" + lega + "' }.awayTeamName", equalTo("Napoli FC"));
+    }
 }
