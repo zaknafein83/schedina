@@ -97,6 +97,7 @@ public class UserScommessaResource {
             case GOAL_NOGOAL -> prediction.equals("GOAL") ? "Gol" : "No gol";
             case WINNER -> teamName(parseLong(prediction));
             case FIRST_SCORER -> {
+                if (prediction.equals(it.schedina.entity.Match.OWN_GOAL_REF)) yield "Autogol";
                 Player p = Player.findById(parseLong(prediction));
                 yield p != null ? p.firstName + " " + p.lastName : prediction;
             }
