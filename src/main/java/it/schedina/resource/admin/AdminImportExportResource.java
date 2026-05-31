@@ -208,12 +208,13 @@ public class AdminImportExportResource {
             }
 
             // Lega: esplicita dalla riga, altrimenti dedotta dalla squadra di casa.
+            // Matching squadre fuzzy (più probabile, non esatto).
             Long leagueId = resolveLeagueId(row);
-            Team home = leagueId != null ? findTeam(homeName, leagueId) : findTeam(homeName, null);
-            if (home == null) { skipped.add("riga " + rownum + ": squadra casa non trovata (" + homeName + ")"); continue; }
+            Team home = findTeamFuzzy(homeName, leagueId);
+            if (home == null) { skipped.add(homeName + " - " + awayName + ": squadra di casa \"" + homeName + "\" non trovata"); continue; }
             if (leagueId == null) leagueId = home.leagueId;
-            Team away = findTeam(awayName, leagueId);
-            if (away == null) { skipped.add("riga " + rownum + ": squadra ospite non trovata (" + awayName + ")"); continue; }
+            Team away = findTeamFuzzy(awayName, leagueId);
+            if (away == null) { skipped.add(homeName + " - " + awayName + ": squadra ospite \"" + awayName + "\" non trovata"); continue; }
             Long homeId = home.id, awayId = away.id;
 
             String key = leagueId + "|" + number;
@@ -403,15 +404,59 @@ public class AdminImportExportResource {
         return row.containsKey(key) && row.get(key) != null && !row.get(key).isBlank();
     }
 
-    /** Trova una squadra per nome: nella lega indicata se data, altrimenti per solo nome. */
-    private Team findTeam(String name, Long leagueId) {
+    /** Soglia minima di similarità per accettare un match fuzzy del nome squadra. */
+    private static final double FUZZY_THRESHOLD = 0.70;
+
+    /**
+     * Trova la squadra più probabile per nome (match fuzzy), nella lega indicata se data,
+     * altrimenti fra tutte. Tollera maiuscole/accenti/punteggiatura e piccoli errori di battitura.
+     * Ritorna null se nessun candidato supera la soglia di similarità.
+     */
+    private Team findTeamFuzzy(String name, Long leagueId) {
         if (name == null || name.isBlank()) return null;
-        String n = name.trim();
-        if (leagueId != null) {
-            Team t = Team.<Team>find("name = ?1 and leagueId = ?2", n, leagueId).firstResult();
-            if (t != null) return t;
+        String q = normalizeName(name);
+        List<Team> candidates = leagueId != null
+                ? Team.<Team>find("leagueId", leagueId).list()
+                : Team.<Team>listAll();
+        Team best = null;
+        double bestScore = 0;
+        for (Team t : candidates) {
+            if (t.name == null) continue;
+            double s = similarity(q, normalizeName(t.name));
+            if (s > bestScore) { bestScore = s; best = t; }
         }
-        return Team.<Team>find("name", n).firstResult();
+        return bestScore >= FUZZY_THRESHOLD ? best : null;
+    }
+
+    /** Minuscolo, senza diacritici, senza punteggiatura, spazi normalizzati. */
+    private static String normalizeName(String s) {
+        String n = java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "");
+        return n.toLowerCase().replaceAll("[^a-z0-9]+", " ").trim();
+    }
+
+    /** Similarità 0..1: 1 se uguali, alta se uno contiene l'altro, altrimenti rapporto di Levenshtein. */
+    private static double similarity(String a, String b) {
+        if (a.isEmpty() || b.isEmpty()) return 0;
+        if (a.equals(b)) return 1.0;
+        if (a.contains(b) || b.contains(a)) return 0.9;
+        int max = Math.max(a.length(), b.length());
+        return 1.0 - (double) levenshtein(a, b) / max;
+    }
+
+    private static int levenshtein(String a, String b) {
+        int[] prev = new int[b.length() + 1];
+        int[] cur = new int[b.length() + 1];
+        for (int j = 0; j <= b.length(); j++) prev[j] = j;
+        for (int i = 1; i <= a.length(); i++) {
+            cur[0] = i;
+            for (int j = 1; j <= b.length(); j++) {
+                int cost = a.charAt(i - 1) == b.charAt(j - 1) ? 0 : 1;
+                cur[j] = Math.min(Math.min(cur[j - 1] + 1, prev[j] + 1), prev[j - 1] + cost);
+            }
+            int[] tmp = prev; prev = cur; cur = tmp;
+        }
+        return prev[b.length()];
     }
 
     private Integer parseIntOrNull(String s) {
