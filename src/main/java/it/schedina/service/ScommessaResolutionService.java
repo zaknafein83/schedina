@@ -28,7 +28,7 @@ public class ScommessaResolutionService {
             throw bad("Mercato non valido per una scommessa di fine campionato");
         }
         List<ScommessaDto.OptionInput> opts = req.options() != null ? req.options() : new ArrayList<>();
-        if (opts.size() < 2) throw bad("La scommessa richiede almeno 2 opzioni");
+        if (opts.isEmpty()) throw bad("La scommessa richiede almeno 1 opzione");
 
         Scommessa b = new Scommessa();
         b.label = req.label();

@@ -114,4 +114,17 @@ class GiornataFlowTest {
         given().header("Authorization", auth).get("/scommesse/mine").then().statusCode(200)
                 .body("find { it.scommessaId == " + bet + " }.isCorrect", is(true));
     }
+
+    @Test
+    void scommessa_fine_campionato_una_sola_opzione() {
+        String auth = "Bearer " + token();
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
+        long teamA = post(auth, "/admin/teams", "{\"name\":\"Alpha\",\"leagueId\":" + leagueId + "}", 201);
+        long pA = post(auth, "/admin/players", "{\"firstName\":\"Solo\",\"lastName\":\"Uno\",\"teamId\":" + teamA + "}", 201);
+
+        // Una sola opzione è ammessa (prima ne servivano almeno 2).
+        post(auth, "/admin/scommesse",
+                "{\"label\":\"Capocannoniere\",\"market\":\"TOP_SCORER\",\"options\":["
+                        + "{\"ref\":\"" + pA + "\",\"label\":\"Solo Uno\"}]}", 201);
+    }
 }
