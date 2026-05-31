@@ -92,27 +92,27 @@ class GiornataFlowTest {
     }
 
     @Test
-    void scommessa_fine_campionato_manuale() {
+    void scommessa_fine_campionato_self_service() {
         String auth = "Bearer " + token();
-        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
+        long nano = System.nanoTime();
+        long seasonId = post(auth, "/admin/seasons", "{\"label\":\"S-" + nano + "\",\"isCurrent\":true}", 201);
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + nano + "\"}", 201);
         long teamA = post(auth, "/admin/teams", "{\"name\":\"Alpha\",\"leagueId\":" + leagueId + "}", 201);
         long pA = post(auth, "/admin/players", "{\"firstName\":\"Bomber\",\"lastName\":\"A\",\"teamId\":" + teamA + "}", 201);
-        long pB = post(auth, "/admin/players", "{\"firstName\":\"Bomber\",\"lastName\":\"B\",\"teamId\":" + teamA + "}", 201);
 
-        long bet = post(auth, "/admin/scommesse",
-                "{\"label\":\"Capocannoniere\",\"market\":\"TOP_SCORER\",\"options\":["
-                        + "{\"ref\":\"" + pA + "\",\"label\":\"Bomber A\"},{\"ref\":\"" + pB + "\",\"label\":\"Bomber B\"}]}", 201);
-
+        // L'utente apre/gioca direttamente: Capocannoniere della lega, sceglie pA (niente catalogo admin).
         given().header("Authorization", auth).contentType("application/json")
-                .body("{\"scommessaId\":" + bet + ",\"choiceRef\":\"" + pA + "\"}")
-                .when().post("/scommesse").then().statusCode(201);
+                .body("{\"seasonId\":" + seasonId + ",\"leagueId\":" + leagueId + ",\"market\":\"TOP_SCORER\",\"prediction\":\"" + pA + "\"}")
+                .when().post("/scommesse/stagione").then().statusCode(201);
 
+        // L'admin dichiara il risultato ufficiale: vince pA → la giocata si risolve.
         given().header("Authorization", auth).contentType("application/json")
-                .body("{\"officialResultRef\":\"" + pA + "\"}")
-                .when().patch("/admin/scommesse/" + bet + "/resolve").then().statusCode(200).body("status", equalTo("RESOLVED"));
+                .body("{\"seasonId\":" + seasonId + ",\"leagueId\":" + leagueId + ",\"market\":\"TOP_SCORER\",\"officialResultRef\":\"" + pA + "\"}")
+                .when().post("/admin/scommesse/result").then().statusCode(200).body("status", equalTo("RESOLVED"));
 
         given().header("Authorization", auth).get("/scommesse/mine").then().statusCode(200)
-                .body("find { it.scommessaId == " + bet + " }.isCorrect", is(true));
+                .body("find { it.market == 'TOP_SCORER' }.isCorrect", is(true))
+                .body("find { it.market == 'TOP_SCORER' }.choiceLabel", equalTo("Bomber A"));
     }
 
     @Test
@@ -141,18 +141,5 @@ class GiornataFlowTest {
         given().header("Authorization", auth).get("/scommesse/partita/mine").then().statusCode(200)
                 .body("find { it.matchId == " + m + " }.isCorrect", is(true))
                 .body("find { it.matchId == " + m + " }.predictionLabel", equalTo("Autogol"));
-    }
-
-    @Test
-    void scommessa_fine_campionato_una_sola_opzione() {
-        String auth = "Bearer " + token();
-        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
-        long teamA = post(auth, "/admin/teams", "{\"name\":\"Alpha\",\"leagueId\":" + leagueId + "}", 201);
-        long pA = post(auth, "/admin/players", "{\"firstName\":\"Solo\",\"lastName\":\"Uno\",\"teamId\":" + teamA + "}", 201);
-
-        // Una sola opzione è ammessa (prima ne servivano almeno 2).
-        post(auth, "/admin/scommesse",
-                "{\"label\":\"Capocannoniere\",\"market\":\"TOP_SCORER\",\"options\":["
-                        + "{\"ref\":\"" + pA + "\",\"label\":\"Solo Uno\"}]}", 201);
     }
 }

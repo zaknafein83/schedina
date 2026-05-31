@@ -2,6 +2,7 @@ package it.schedina.resource.user;
 
 import it.schedina.dto.PlayerDto;
 import it.schedina.dto.TeamDto;
+import it.schedina.entity.League;
 import it.schedina.entity.Player;
 import it.schedina.entity.Team;
 import it.schedina.service.AuthService;
@@ -11,6 +12,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Listini informativi (squadre, giocatori) accessibili a qualsiasi utente loggato.
@@ -21,6 +23,16 @@ import java.util.List;
 public class PublicListResource {
 
     @Inject AuthService auth;
+
+    @GET
+    @Path("/leagues")
+    @Transactional
+    public List<Map<String, Object>> leagues(@HeaderParam("Authorization") String token) {
+        auth.requireAuth(token);
+        return League.<League>find("isActive = true order by name").list().stream()
+                .map(l -> Map.<String, Object>of("id", l.id, "name", l.name))
+                .toList();
+    }
 
     @GET
     @Path("/teams")
