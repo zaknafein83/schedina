@@ -13,6 +13,14 @@ public final class GiocataDto {
             @NotBlank String choiceRef
     ) {}
 
+    /** Giocata di fine campionato self-service: lega + mercato + bersaglio (id giocatore/squadra). */
+    public record GiocataStagioneRequest(
+            Long seasonId,
+            @NotNull Long leagueId,
+            @NotNull Scommessa.Market market,
+            @NotBlank String prediction
+    ) {}
+
     public record GiocataResponse(
             Long id, Long scommessaId, String scommessaLabel, Scommessa.Market market,
             String choiceRef, String choiceLabel,

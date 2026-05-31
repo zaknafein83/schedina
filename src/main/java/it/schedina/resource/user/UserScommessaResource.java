@@ -26,15 +26,6 @@ public class UserScommessaResource {
     // ---- Fine campionato ----
 
     @GET
-    @Transactional
-    public List<ScommessaDto.ScommessaResponse> open(@HeaderParam("Authorization") String token) {
-        auth.requireAuth(token);
-        return Scommessa.findOpen().stream()
-                .map(b -> ScommessaDto.ScommessaResponse.from(b, BetOption.findByBet(b.id)))
-                .toList();
-    }
-
-    @GET
     @Path("/mine")
     @Transactional
     public List<GiocataDto.GiocataResponse> mine(@HeaderParam("Authorization") String token) {
@@ -42,11 +33,13 @@ public class UserScommessaResource {
         return Giocata.findByUser(user.id).stream().map(this::toResponse).toList();
     }
 
+    /** Giocata self-service di fine campionato: lega + mercato + bersaglio (id giocatore/squadra). */
     @POST
+    @Path("/stagione")
     @Transactional
-    public Response place(@HeaderParam("Authorization") String token, @Valid GiocataDto.GiocataRequest req) {
+    public Response placeStagione(@HeaderParam("Authorization") String token, @Valid GiocataDto.GiocataStagioneRequest req) {
         User user = auth.requireAuth(token);
-        Giocata g = resolution.placeGiocata(user.id, req.scommessaId(), req.choiceRef());
+        Giocata g = resolution.placeGiocataStagione(user.id, req.seasonId(), req.leagueId(), req.market(), req.prediction());
         return Response.status(201).entity(toResponse(g)).build();
     }
 
@@ -75,8 +68,14 @@ public class UserScommessaResource {
         Scommessa b = Scommessa.findById(g.scommessaId);
         String label = b != null ? b.label : "?";
         String choiceLabel = g.choiceRef;
-        for (BetOption o : BetOption.findByBet(g.scommessaId)) {
-            if (o.ref.equals(g.choiceRef)) { choiceLabel = o.label; break; }
+        if (b != null) {
+            Scommessa.TargetKind kind = b.targetKind();
+            if (kind == Scommessa.TargetKind.PLAYER) {
+                Player p = Player.findById(parseLong(g.choiceRef));
+                if (p != null) choiceLabel = p.firstName + " " + p.lastName;
+            } else if (kind == Scommessa.TargetKind.TEAM) {
+                choiceLabel = teamName(parseLong(g.choiceRef));
+            }
         }
         return new GiocataDto.GiocataResponse(g.id, g.scommessaId, label,
                 b != null ? b.market : null, g.choiceRef, choiceLabel, g.isCorrect,

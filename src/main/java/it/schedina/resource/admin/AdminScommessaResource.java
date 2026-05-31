@@ -1,9 +1,7 @@
 package it.schedina.resource.admin;
 
 import it.schedina.dto.ScommessaDto;
-import it.schedina.entity.BetOption;
-import it.schedina.entity.Giocata;
-import it.schedina.entity.Scommessa;
+import it.schedina.entity.*;
 import it.schedina.service.AuthService;
 import it.schedina.service.ScommessaResolutionService;
 import jakarta.inject.Inject;
@@ -15,7 +13,10 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.List;
 
-/** Catalogo delle scommesse di FINE CAMPIONATO (le scommesse di partita sono guidate dall'utente). */
+/**
+ * Scommesse di FINE CAMPIONATO: self-service (le apre l'utente scegliendo lega+mercato+bersaglio).
+ * Qui l'admin vede le scommesse esistenti e ne dichiara il risultato ufficiale.
+ */
 @Path("/admin/scommesse")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -25,7 +26,27 @@ public class AdminScommessaResource {
     @Inject ScommessaResolutionService resolution;
 
     private ScommessaDto.ScommessaResponse resp(Scommessa b) {
-        return ScommessaDto.ScommessaResponse.from(b, BetOption.findByBet(b.id));
+        League l = b.leagueId != null ? League.findById(b.leagueId) : null;
+        long count = Giocata.count("scommessaId", b.id);
+        String resultLabel = b.officialResultRef != null ? targetLabel(b, b.officialResultRef) : null;
+        return ScommessaDto.ScommessaResponse.from(b, l != null ? l.name : null, resultLabel, count);
+    }
+
+    /** Etichetta leggibile del bersaglio (giocatore o squadra) a partire dal ref. */
+    private String targetLabel(Scommessa b, String ref) {
+        if (b.targetKind() == Scommessa.TargetKind.PLAYER) {
+            Player p = Player.findById(parseLong(ref));
+            return p != null ? p.firstName + " " + p.lastName : ref;
+        }
+        if (b.targetKind() == Scommessa.TargetKind.TEAM) {
+            Team t = Team.findById(parseLong(ref));
+            return t != null ? t.name : ref;
+        }
+        return ref;
+    }
+
+    private long parseLong(String s) {
+        try { return Long.parseLong(s); } catch (Exception e) { return -1L; }
     }
 
     @GET
@@ -48,12 +69,14 @@ public class AdminScommessaResource {
         return resp(b);
     }
 
+    /** Dichiara il risultato ufficiale per stagione+lega+mercato (crea la scommessa se non esiste) e risolve le giocate. */
     @POST
+    @Path("/result")
     @Transactional
-    public Response create(@HeaderParam("Authorization") String token, @Valid ScommessaDto.ScommessaRequest req) {
+    public ScommessaDto.ScommessaResponse setResult(@HeaderParam("Authorization") String token,
+            @Valid ScommessaDto.SeasonResultRequest req) {
         auth.requireAdminOrMod(token);
-        Scommessa b = resolution.create(req);
-        return Response.status(201).entity(resp(b)).build();
+        return resp(resolution.setSeasonResult(req.seasonId(), req.leagueId(), req.market(), req.officialResultRef()));
     }
 
     @PATCH
@@ -89,7 +112,6 @@ public class AdminScommessaResource {
         Scommessa b = Scommessa.findById(id);
         if (b == null) throw new NotFoundException();
         Giocata.delete("scommessaId", id);
-        BetOption.deleteByBet(id);
         b.delete();
         return Response.noContent().build();
     }

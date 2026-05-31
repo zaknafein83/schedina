@@ -25,6 +25,14 @@ public final class ScommessaDto {
 
     public record ResolveRequest(@NotBlank String officialResultRef) {}
 
+    /** L'admin dichiara il risultato per stagione+lega+mercato (self-service: nessun catalogo). */
+    public record SeasonResultRequest(
+            Long seasonId,
+            @NotNull Long leagueId,
+            @NotNull Scommessa.Market market,
+            @NotBlank String officialResultRef
+    ) {}
+
     public record OptionResponse(Long id, String ref, String label, int displayOrder) {
         public static OptionResponse from(BetOption o) {
             return new OptionResponse(o.id, o.ref, o.label, o.displayOrder);
@@ -33,14 +41,13 @@ public final class ScommessaDto {
 
     public record ScommessaResponse(
             Long id, String label, Scommessa.Market market, Scommessa.TargetKind targetKind,
-            Long seasonId, Long tournamentId, Long leagueId,
-            Scommessa.Status status, String officialResultRef, List<OptionResponse> options
+            Long seasonId, Long leagueId, String leagueName,
+            Scommessa.Status status, String officialResultRef, String officialResultLabel, long giocateCount
     ) {
-        public static ScommessaResponse from(Scommessa b, List<BetOption> opts) {
+        public static ScommessaResponse from(Scommessa b, String leagueName, String officialResultLabel, long giocateCount) {
             return new ScommessaResponse(b.id, b.label, b.market, b.targetKind(),
-                    b.seasonId, b.tournamentId, b.leagueId,
-                    b.status, b.officialResultRef,
-                    opts.stream().map(OptionResponse::from).toList());
+                    b.seasonId, b.leagueId, leagueName,
+                    b.status, b.officialResultRef, officialResultLabel, giocateCount);
         }
     }
 }
