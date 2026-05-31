@@ -1,6 +1,5 @@
 package it.schedina.service;
 
-import it.schedina.dto.ScommessaDto;
 import it.schedina.entity.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
@@ -8,7 +7,6 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 

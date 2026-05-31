@@ -59,16 +59,6 @@ public class AdminScommessaResource {
         return bets.stream().map(this::resp).toList();
     }
 
-    @GET
-    @Path("/{id}")
-    @Transactional
-    public ScommessaDto.ScommessaResponse get(@HeaderParam("Authorization") String token, @PathParam("id") Long id) {
-        auth.requireAdminOrMod(token);
-        Scommessa b = Scommessa.findById(id);
-        if (b == null) throw new NotFoundException();
-        return resp(b);
-    }
-
     /** Dichiara il risultato ufficiale per stagione+lega+mercato (crea la scommessa se non esiste) e risolve le giocate. */
     @POST
     @Path("/result")
@@ -77,15 +67,6 @@ public class AdminScommessaResource {
             @Valid ScommessaDto.SeasonResultRequest req) {
         auth.requireAdminOrMod(token);
         return resp(resolution.setSeasonResult(req.seasonId(), req.leagueId(), req.market(), req.officialResultRef()));
-    }
-
-    @PATCH
-    @Path("/{id}/resolve")
-    @Transactional
-    public ScommessaDto.ScommessaResponse resolve(@HeaderParam("Authorization") String token,
-            @PathParam("id") Long id, @Valid ScommessaDto.ResolveRequest req) {
-        auth.requireAdminOrMod(token);
-        return resp(resolution.resolveManual(id, req.officialResultRef()));
     }
 
     @POST
