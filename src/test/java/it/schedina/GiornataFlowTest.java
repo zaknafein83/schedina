@@ -116,6 +116,34 @@ class GiornataFlowTest {
     }
 
     @Test
+    void scommessa_primo_marcatore_autogol() {
+        String auth = "Bearer " + token();
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
+        long home = post(auth, "/admin/teams", "{\"name\":\"Alpha\",\"leagueId\":" + leagueId + "}", 201);
+        long away = post(auth, "/admin/teams", "{\"name\":\"Beta\",\"leagueId\":" + leagueId + "}", 201);
+        long g = post(auth, "/admin/giornate", "{\"leagueId\":" + leagueId + ",\"name\":\"g\",\"number\":1}", 201);
+        long m = post(auth, "/admin/matches",
+                "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\"}", 201);
+
+        // L'utente prevede "Autogol" come primo marcatore.
+        given().header("Authorization", auth).contentType("application/json")
+                .body("{\"matchId\":" + m + ",\"market\":\"FIRST_SCORER\",\"prediction\":\"OWN_GOAL\"}")
+                .when().post("/scommesse/partita").then().statusCode(201);
+
+        // Punteggio (serve perché le giocate si risolvano).
+        given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":1,\"awayScore\":0}")
+                .when().put("/admin/matches/" + m + "/result").then().statusCode(200);
+
+        // L'admin segna il primo marcatore = Autogol (-1) → risolve la giocata.
+        given().header("Authorization", auth).contentType("application/json").body("{\"playerId\":-1}")
+                .when().put("/admin/matches/" + m + "/first-scorer").then().statusCode(200);
+
+        given().header("Authorization", auth).get("/scommesse/partita/mine").then().statusCode(200)
+                .body("find { it.matchId == " + m + " }.isCorrect", is(true))
+                .body("find { it.matchId == " + m + " }.predictionLabel", equalTo("Autogol"));
+    }
+
+    @Test
     void scommessa_fine_campionato_una_sola_opzione() {
         String auth = "Bearer " + token();
         long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
