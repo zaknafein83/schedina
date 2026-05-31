@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Scommessa di FINE CAMPIONATO (catalogo creato dall'admin, con candidati = BetOption).
- * L'utente sceglie un'opzione (Giocata); l'admin risolve a mano.
+ * Scommessa di FINE CAMPIONATO (self-service per lega): auto-creata per (stagione, lega, mercato)
+ * alla prima giocata dell'utente ({@link Giocata}); l'admin ne dichiara il risultato ufficiale.
  * Le scommesse DI PARTITA non passano da qui: sono {@link GiocataPartita} (sempre disponibili).
  * L'enum {@link Market} resta completo perché riusato anche dalle giocate di partita.
  */
@@ -87,9 +87,5 @@ public class Scommessa extends PanacheEntityBase {
 
     public static List<Scommessa> findBySeason(Long seasonId) {
         return find("seasonId = ?1 order by id", seasonId).list();
-    }
-
-    public static List<Scommessa> findOpen() {
-        return find("status = ?1 order by id", Status.OPEN).list();
     }
 }
