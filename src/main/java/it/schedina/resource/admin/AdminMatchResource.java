@@ -136,13 +136,21 @@ public class AdminMatchResource {
         Match m = Match.findById(id);
         if (m == null) throw new NotFoundException();
         if (req != null && req.playerId() != null) {
-            Player p = Player.findById(req.playerId());
-            if (p == null || (!m.homeTeamId.equals(p.teamId) && !m.awayTeamId.equals(p.teamId))) {
-                return Response.status(400).entity(Map.of("error", "Il marcatore deve essere un giocatore delle due squadre")).build();
+            Long pid = req.playerId();
+            if (pid == Match.OWN_GOAL) { // -1 = autogol, non un giocatore reale
+                m.firstScorerOwnGoal = true;
+                m.firstScorerPlayerId = null;
+            } else {
+                Player p = Player.findById(pid);
+                if (p == null || (!m.homeTeamId.equals(p.teamId) && !m.awayTeamId.equals(p.teamId))) {
+                    return Response.status(400).entity(Map.of("error", "Il marcatore deve essere un giocatore delle due squadre")).build();
+                }
+                m.firstScorerPlayerId = pid;
+                m.firstScorerOwnGoal = false;
             }
-            m.firstScorerPlayerId = req.playerId();
         } else {
             m.firstScorerPlayerId = null;
+            m.firstScorerOwnGoal = false;
         }
         m.persist();
         int resolved = resolution.resolveMatchBets(m);

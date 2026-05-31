@@ -129,9 +129,11 @@ public class ScommessaResolutionService {
                 if (!prediction.matches("\\d{1,2}-\\d{1,2}")) throw bad("Risultato esatto non valido (es. 2-1)");
             }
             case FIRST_SCORER -> {
-                Player p = Player.findById(parseLong(prediction));
-                if (p == null || (!m.homeTeamId.equals(p.teamId) && !m.awayTeamId.equals(p.teamId)))
-                    throw bad("Il marcatore deve essere un giocatore delle due squadre");
+                if (!prediction.equals(Match.OWN_GOAL_REF)) { // "OWN_GOAL" = autogol, ammesso
+                    Player p = Player.findById(parseLong(prediction));
+                    if (p == null || (!m.homeTeamId.equals(p.teamId) && !m.awayTeamId.equals(p.teamId)))
+                        throw bad("Il marcatore deve essere un giocatore delle due squadre o l'autogol");
+                }
             }
             default -> throw bad("Mercato non valido");
         }
@@ -159,8 +161,11 @@ public class ScommessaResolutionService {
                 case GOAL_NOGOAL -> g.prediction.equals(gng);
                 case WINNER -> winner != null && g.prediction.equals(String.valueOf(winner));
                 case EXACT_SCORE -> g.prediction.equals(exact);
-                case FIRST_SCORER -> m.firstScorerPlayerId != null
-                        ? g.prediction.equals(String.valueOf(m.firstScorerPlayerId)) : null;
+                case FIRST_SCORER -> {
+                    String scorerRef = m.firstScorerOwnGoal ? Match.OWN_GOAL_REF
+                            : (m.firstScorerPlayerId != null ? String.valueOf(m.firstScorerPlayerId) : null);
+                    yield scorerRef != null ? g.prediction.equals(scorerRef) : null;
+                }
                 default -> null;
             };
             if (correct != null) { g.isCorrect = correct; g.persist(); n++; }

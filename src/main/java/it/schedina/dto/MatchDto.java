@@ -30,12 +30,13 @@ public final class MatchDto {
             Long awayTeamId, String awayTeamName,
             Long leagueId, LocalDateTime scheduledAt, Match.Status status,
             Double overUnderLine, Integer homeScore, Integer awayScore,
-            String result1x2, String resultUO, Long firstScorerPlayerId
+            String result1x2, String resultUO, Long firstScorerPlayerId, boolean firstScorerOwnGoal
     ) {
         public static MatchResponse from(Match m, String homeName, String awayName) {
             return new MatchResponse(m.id, m.giornataId, m.concorsoId, m.homeTeamId, homeName,
                     m.awayTeamId, awayName, m.leagueId, m.scheduledAt, m.status,
-                    m.overUnderLine, m.homeScore, m.awayScore, m.result1x2(), m.resultUO(), m.firstScorerPlayerId);
+                    m.overUnderLine, m.homeScore, m.awayScore, m.result1x2(), m.resultUO(),
+                    m.firstScorerPlayerId, m.firstScorerOwnGoal);
         }
     }
 }

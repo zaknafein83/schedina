@@ -16,6 +16,11 @@ public class Match extends PanacheEntityBase {
 
     public enum Status { DRAFT, SCHEDULED, OPEN, CLOSED, RESULT_ENTERED, VALIDATED }
 
+    /** Sentinella per {@link #firstScorerPlayerId}: il primo gol è stato un autogol. */
+    public static final long OWN_GOAL = -1L;
+    /** Ref usato lato giocata utente per prevedere l'autogol come primo marcatore. */
+    public static final String OWN_GOAL_REF = "OWN_GOAL";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
@@ -39,6 +44,10 @@ public class Match extends PanacheEntityBase {
     /** Giocatore che ha segnato il primo gol (per la scommessa "Primo marcatore"), impostato a mano. */
     @Column(name = "first_scorer_player_id")
     public Long firstScorerPlayerId;
+
+    /** True se il primo gol è stato un autogol (alternativa a {@link #firstScorerPlayerId}). */
+    @Column(name = "first_scorer_own_goal", nullable = false)
+    public boolean firstScorerOwnGoal = false;
 
     @Column(name = "scheduled_at", nullable = false)
     public LocalDateTime scheduledAt;
