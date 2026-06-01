@@ -1,6 +1,7 @@
 package it.schedina.dto;
 
 import it.schedina.entity.Schedina;
+import it.schedina.entity.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -25,12 +26,15 @@ public final class SchedinaDto {
     ) {}
 
     public record SchedinaSummary(
-            Long id, Long userId, Long concorsoId, Schedina.Status status,
+            Long id, Long userId, String userEmail, String userUsername, Long concorsoId, Schedina.Status status,
             Integer correctCount, Boolean isWinner,
             LocalDateTime confirmedAt, LocalDateTime createdAt
     ) {
         public static SchedinaSummary from(Schedina s) {
-            return new SchedinaSummary(s.id, s.userId, s.concorsoId, s.status,
+            User u = User.findById(s.userId);
+            return new SchedinaSummary(s.id, s.userId,
+                    u != null ? u.email : null, u != null ? u.username : null,
+                    s.concorsoId, s.status,
                     s.correctCount, s.isWinner, s.confirmedAt, s.createdAt);
         }
     }
