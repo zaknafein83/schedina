@@ -54,6 +54,14 @@ public class Schedina extends PanacheEntityBase {
     @Column(name = "is_winner_uo")
     public Boolean isWinnerUo;
 
+    /** Premio (€) vinto sul Totocalcio (1X2). 0/null se non vincente. */
+    @Column(name = "prize_1x2")
+    public Long prize1x2;
+
+    /** Premio (€) vinto sull'Under/Over. 0/null se non vincente. */
+    @Column(name = "prize_uo")
+    public Long prizeUo;
+
     @Column(name = "confirmed_at")
     public LocalDateTime confirmedAt;
 

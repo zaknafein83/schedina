@@ -28,8 +28,8 @@ public final class SchedinaDto {
     public record SchedinaSummary(
             Long id, Long userId, String userEmail, String userUsername, Long concorsoId, Schedina.Status status,
             Integer correctCount, Boolean isWinner,
-            Integer correct1x2Count, Boolean isWinner1x2,
-            Integer correctUoCount, Boolean isWinnerUo,
+            Integer correct1x2Count, Boolean isWinner1x2, Long prize1x2,
+            Integer correctUoCount, Boolean isWinnerUo, Long prizeUo,
             LocalDateTime confirmedAt, LocalDateTime createdAt
     ) {
         public static SchedinaSummary from(Schedina s) {
@@ -38,11 +38,16 @@ public final class SchedinaDto {
                     u != null ? u.email : null, u != null ? u.username : null,
                     s.concorsoId, s.status,
                     s.correctCount, s.isWinner,
-                    s.correct1x2Count, s.isWinner1x2,
-                    s.correctUoCount, s.isWinnerUo,
+                    s.correct1x2Count, s.isWinner1x2, s.prize1x2,
+                    s.correctUoCount, s.isWinnerUo, s.prizeUo,
                     s.confirmedAt, s.createdAt);
         }
     }
+
+    /** Totale vinto da un utente (somma premi delle sue schedine), per la dashboard. */
+    public record WinningsResponse(
+            long total, long totalTotocalcio, long totalUnderOver, int schedineVincenti
+    ) {}
 
     public record SelezioneResponse(
             Long matchId, String home, String away,
@@ -54,8 +59,8 @@ public final class SchedinaDto {
     public record SchedinaDetail(
             Long id, Long userId, Long concorsoId, Schedina.Status status,
             Integer correctCount, Boolean isWinner,
-            Integer correct1x2Count, Boolean isWinner1x2,
-            Integer correctUoCount, Boolean isWinnerUo,
+            Integer correct1x2Count, Boolean isWinner1x2, Long prize1x2,
+            Integer correctUoCount, Boolean isWinnerUo, Long prizeUo,
             List<SelezioneResponse> selezioni
     ) {}
 }

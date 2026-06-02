@@ -1,9 +1,12 @@
 package it.schedina.resource.admin;
 
 import it.schedina.dto.RuleDto;
+import it.schedina.entity.Concorso;
 import it.schedina.entity.Giornata;
 import it.schedina.entity.Rule;
 import it.schedina.service.AuthService;
+import it.schedina.service.NotificationService;
+import it.schedina.service.SchedinaScoringEngine;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -12,6 +15,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +25,20 @@ import java.util.Map;
 public class AdminRuleResource {
 
     @Inject AuthService auth;
+    @Inject SchedinaScoringEngine scoring;
+    @Inject NotificationService notifications;
+
+    /** Rielabora i concorsi già processati che usano la regola (es. dopo modifica soglie/premi). */
+    private void reprocessConcorsiUsing(Long ruleId) {
+        List<Concorso> concorsi = Concorso.find("ruleId = ?1 and status = ?2",
+                ruleId, Concorso.Status.PROCESSED).list();
+        for (Concorso c : concorsi) {
+            scoring.process(c);
+            if (c.status == Concorso.Status.PROCESSED) {
+                notifications.sendConcorsoNotifications(c.id);
+            }
+        }
+    }
 
     @GET
     @Transactional
@@ -46,6 +64,7 @@ public class AdminRuleResource {
         Rule r = new Rule();
         r.name = req.name();
         if (req.winningThresholds() != null) r.winningThresholds = new ArrayList<>(req.winningThresholds());
+        if (req.prizes() != null) r.prizes = new LinkedHashMap<>(req.prizes());
         if (req.isActive() != null) r.isActive = req.isActive();
         r.persist();
         return Response.status(201).entity(RuleDto.RuleResponse.from(r)).build();
@@ -61,8 +80,11 @@ public class AdminRuleResource {
         if (r == null) throw new NotFoundException();
         if (req.name() != null) r.name = req.name();
         if (req.winningThresholds() != null) r.winningThresholds = new ArrayList<>(req.winningThresholds());
+        if (req.prizes() != null) r.prizes = new LinkedHashMap<>(req.prizes());
         if (req.isActive() != null) r.isActive = req.isActive();
         r.persist();
+        // Soglie/premi possono essere cambiati → rielabora i concorsi già processati che la usano.
+        reprocessConcorsiUsing(r.id);
         return RuleDto.RuleResponse.from(r);
     }
 
