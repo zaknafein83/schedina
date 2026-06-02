@@ -28,6 +28,8 @@ public final class SchedinaDto {
     public record SchedinaSummary(
             Long id, Long userId, String userEmail, String userUsername, Long concorsoId, Schedina.Status status,
             Integer correctCount, Boolean isWinner,
+            Integer correct1x2Count, Boolean isWinner1x2,
+            Integer correctUoCount, Boolean isWinnerUo,
             LocalDateTime confirmedAt, LocalDateTime createdAt
     ) {
         public static SchedinaSummary from(Schedina s) {
@@ -35,7 +37,10 @@ public final class SchedinaDto {
             return new SchedinaSummary(s.id, s.userId,
                     u != null ? u.email : null, u != null ? u.username : null,
                     s.concorsoId, s.status,
-                    s.correctCount, s.isWinner, s.confirmedAt, s.createdAt);
+                    s.correctCount, s.isWinner,
+                    s.correct1x2Count, s.isWinner1x2,
+                    s.correctUoCount, s.isWinnerUo,
+                    s.confirmedAt, s.createdAt);
         }
     }
 
@@ -48,6 +53,9 @@ public final class SchedinaDto {
 
     public record SchedinaDetail(
             Long id, Long userId, Long concorsoId, Schedina.Status status,
-            Integer correctCount, Boolean isWinner, List<SelezioneResponse> selezioni
+            Integer correctCount, Boolean isWinner,
+            Integer correct1x2Count, Boolean isWinner1x2,
+            Integer correctUoCount, Boolean isWinnerUo,
+            List<SelezioneResponse> selezioni
     ) {}
 }

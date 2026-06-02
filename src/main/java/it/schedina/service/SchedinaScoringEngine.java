@@ -96,20 +96,26 @@ public class SchedinaScoringEngine {
 
         int winners = 0;
         for (Schedina s : schedine) {
-            int correct = 0;
+            int correct1x2 = 0;
+            int correctUo = 0;
             for (Selezione sel : Selezione.findBySchedina(s.id)) {
                 Match m = byId.get(sel.matchId);
                 String r1 = m != null ? m.result1x2() : null;
                 String ru = m != null ? m.resultUO() : null;
                 sel.correct1x2 = r1 == null ? null : r1.equals(sel.choice1x2);
                 sel.correctUo = ru == null ? null : ru.equals(sel.choiceUo);
-                if (Boolean.TRUE.equals(sel.correct1x2)) correct++;
-                if (Boolean.TRUE.equals(sel.correctUo)) correct++;
+                if (Boolean.TRUE.equals(sel.correct1x2)) correct1x2++;
+                if (Boolean.TRUE.equals(sel.correctUo)) correctUo++;
                 sel.persist();
             }
-            s.correctCount = correct;
+            // Due giochi separati: Totocalcio (1X2) e Under/Over, stesse soglie valutate a parte.
+            s.correct1x2Count = correct1x2;
+            s.correctUoCount = correctUo;
+            s.correctCount = correct1x2 + correctUo; // legacy/aggregato
             if (allScored) {
-                s.isWinner = thresholds.contains(correct);
+                s.isWinner1x2 = thresholds.contains(correct1x2);
+                s.isWinnerUo = thresholds.contains(correctUo);
+                s.isWinner = Boolean.TRUE.equals(s.isWinner1x2) || Boolean.TRUE.equals(s.isWinnerUo);
                 s.status = s.isWinner ? Schedina.Status.WINNING : Schedina.Status.NOT_WINNING;
                 if (Boolean.TRUE.equals(s.isWinner)) winners++;
             } else {

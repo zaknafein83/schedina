@@ -38,7 +38,8 @@ class GiornataFlowTest {
         long m = post(auth, "/admin/matches",
                 "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}", 201);
 
-        long ruleId = post(auth, "/admin/rules", "{\"name\":\"R " + System.nanoTime() + "\",\"winningThresholds\":[2]}", 201);
+        // Soglia [1]: con una sola partita, 1/1 esatto = vinto quel gioco (1X2 e U/O valutati a parte).
+        long ruleId = post(auth, "/admin/rules", "{\"name\":\"R " + System.nanoTime() + "\",\"winningThresholds\":[1]}", 201);
         long c = post(auth, "/admin/concorsi",
                 "{\"name\":\"Turno 1\",\"number\":1,\"ruleId\":" + ruleId + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
 
@@ -64,7 +65,50 @@ class GiornataFlowTest {
                 .body("allScored", is(true)).body("winners", is(1)).body("status", equalTo("PROCESSED"));
 
         given().header("Authorization", auth).get("/schedine/" + sched).then().statusCode(200)
-                .body("status", equalTo("WINNING")).body("correctCount", is(2));
+                .body("status", equalTo("WINNING")).body("correctCount", is(2))
+                .body("isWinner1x2", is(true)).body("isWinnerUo", is(true));
+    }
+
+    @Test
+    void schedina_scoring_separato_1x2_e_uo() {
+        String auth = "Bearer " + token();
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
+        long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
+        long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
+
+        long g = post(auth, "/admin/giornate",
+                "{\"leagueId\":" + leagueId + ",\"name\":\"Serie X g.1\",\"number\":1}", 201);
+        long m = post(auth, "/admin/matches",
+                "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}", 201);
+
+        // Soglia [1]: in ciascun gioco basta 1 esatto per vincere quel gioco.
+        long ruleId = post(auth, "/admin/rules", "{\"name\":\"R " + System.nanoTime() + "\",\"winningThresholds\":[1]}", 201);
+        long c = post(auth, "/admin/concorsi",
+                "{\"name\":\"Turno 1\",\"number\":1,\"ruleId\":" + ruleId + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
+        given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + m + "}")
+                .post("/admin/concorsi/" + c + "/matches").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/open").then().statusCode(200);
+
+        // L'utente azzecca l'1X2 ("1") ma sbaglia U/O ("U" mentre il 2-1 = 3 gol = Over).
+        long sched = post(auth, "/schedine",
+                "{\"concorsoId\":" + c + ",\"pronostici\":[{\"matchId\":" + m + ",\"choice1x2\":\"1\",\"choiceUo\":\"U\"}]}", 201);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/schedine/" + sched + "/confirm").then().statusCode(200);
+
+        given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":2,\"awayScore\":1}")
+                .when().put("/admin/matches/" + m + "/result").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/close").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/process").then().statusCode(200);
+
+        // Vince il Totocalcio (1X2) ma NON l'Under/Over; stato aggregato WINNING (vince almeno un gioco).
+        given().header("Authorization", auth).get("/schedine/" + sched).then().statusCode(200)
+                .body("status", equalTo("WINNING"))
+                .body("correct1x2Count", is(1)).body("isWinner1x2", is(true))
+                .body("correctUoCount", is(0)).body("isWinnerUo", is(false))
+                .body("correctCount", is(1)).body("isWinner", is(true));
     }
 
     @Test

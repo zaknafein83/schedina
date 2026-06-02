@@ -54,7 +54,10 @@ public class AdminSchedinaResource {
                     m != null ? m.overUnderLine : null));
         }
         return new SchedinaDto.SchedinaDetail(s.id, s.userId, s.concorsoId, s.status,
-                s.correctCount, s.isWinner, sels);
+                s.correctCount, s.isWinner,
+                s.correct1x2Count, s.isWinner1x2,
+                s.correctUoCount, s.isWinnerUo,
+                sels);
     }
 
     private static String teamName(Long id) {
