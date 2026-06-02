@@ -30,11 +30,29 @@ public class Schedina extends PanacheEntityBase {
     @Column(nullable = false, length = 20)
     public Status status = Status.DRAFT;
 
+    /** Totale (1X2 + U/O) — legacy, mantenuto per retrocompatibilità. */
     @Column(name = "correct_count")
     public Integer correctCount;
 
+    /** Vittoria su almeno uno dei due giochi — legacy/aggregato. */
     @Column(name = "is_winner")
     public Boolean isWinner;
+
+    /** Pronostici 1X2 esatti (gioco Totocalcio). */
+    @Column(name = "correct_1x2_count")
+    public Integer correct1x2Count;
+
+    /** Pronostici Under/Over esatti (gioco U/O). */
+    @Column(name = "correct_uo_count")
+    public Integer correctUoCount;
+
+    /** Vincente nel gioco Totocalcio (1X2). */
+    @Column(name = "is_winner_1x2")
+    public Boolean isWinner1x2;
+
+    /** Vincente nel gioco Under/Over. */
+    @Column(name = "is_winner_uo")
+    public Boolean isWinnerUo;
 
     @Column(name = "confirmed_at")
     public LocalDateTime confirmedAt;
