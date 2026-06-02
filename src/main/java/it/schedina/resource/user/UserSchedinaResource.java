@@ -32,6 +32,22 @@ public class UserSchedinaResource {
         return Schedina.findByUser(user.id).stream().map(SchedinaDto.SchedinaSummary::from).toList();
     }
 
+    /** Totale vinto dall'utente: somma dei premi (1X2 + U/O) delle sue schedine. */
+    @GET
+    @Path("/winnings")
+    @Transactional
+    public SchedinaDto.WinningsResponse winnings(@HeaderParam("Authorization") String token) {
+        User user = auth.requireAuth(token);
+        long t1 = 0, tu = 0;
+        int vincenti = 0;
+        for (Schedina s : Schedina.findByUser(user.id)) {
+            if (s.prize1x2 != null) t1 += s.prize1x2;
+            if (s.prizeUo != null) tu += s.prizeUo;
+            if (Boolean.TRUE.equals(s.isWinner)) vincenti++;
+        }
+        return new SchedinaDto.WinningsResponse(t1 + tu, t1, tu, vincenti);
+    }
+
     @POST
     @Transactional
     public Response create(@HeaderParam("Authorization") String token, @Valid SchedinaDto.CreateRequest req) {

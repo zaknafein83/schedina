@@ -115,6 +115,9 @@ public class SchedinaScoringEngine {
             if (allScored) {
                 s.isWinner1x2 = thresholds.contains(correct1x2);
                 s.isWinnerUo = thresholds.contains(correctUo);
+                // Premio della soglia centrata in ciascun gioco (dalla regola; 0 se non vincente).
+                s.prize1x2 = Boolean.TRUE.equals(s.isWinner1x2) && rule != null ? rule.prizeFor(correct1x2) : 0L;
+                s.prizeUo = Boolean.TRUE.equals(s.isWinnerUo) && rule != null ? rule.prizeFor(correctUo) : 0L;
                 s.isWinner = Boolean.TRUE.equals(s.isWinner1x2) || Boolean.TRUE.equals(s.isWinnerUo);
                 s.status = s.isWinner ? Schedina.Status.WINNING : Schedina.Status.NOT_WINNING;
                 if (Boolean.TRUE.equals(s.isWinner)) winners++;

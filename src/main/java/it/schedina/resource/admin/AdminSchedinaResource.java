@@ -55,8 +55,8 @@ public class AdminSchedinaResource {
         }
         return new SchedinaDto.SchedinaDetail(s.id, s.userId, s.concorsoId, s.status,
                 s.correctCount, s.isWinner,
-                s.correct1x2Count, s.isWinner1x2,
-                s.correctUoCount, s.isWinnerUo,
+                s.correct1x2Count, s.isWinner1x2, s.prize1x2,
+                s.correctUoCount, s.isWinnerUo, s.prizeUo,
                 sels);
     }
 
