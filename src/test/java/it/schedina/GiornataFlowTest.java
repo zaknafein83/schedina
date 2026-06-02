@@ -112,6 +112,64 @@ class GiornataFlowTest {
     }
 
     @Test
+    void notifiche_per_gioco_idempotenti_e_pulite() {
+        String auth = "Bearer " + token();
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
+        long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
+        long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
+        long g = post(auth, "/admin/giornate",
+                "{\"leagueId\":" + leagueId + ",\"name\":\"g\",\"number\":1}", 201);
+        long m = post(auth, "/admin/matches",
+                "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}", 201);
+
+        long ruleId = post(auth, "/admin/rules", "{\"name\":\"R " + System.nanoTime() + "\",\"winningThresholds\":[1]}", 201);
+        long c = post(auth, "/admin/concorsi",
+                "{\"name\":\"Turno N\",\"number\":1,\"ruleId\":" + ruleId + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
+        given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + m + "}")
+                .post("/admin/concorsi/" + c + "/matches").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/open").then().statusCode(200);
+
+        // Pronostico: 1X2 = "1", U/O = "U".
+        long sched = post(auth, "/schedine",
+                "{\"concorsoId\":" + c + ",\"pronostici\":[{\"matchId\":" + m + ",\"choice1x2\":\"1\",\"choiceUo\":\"U\"}]}", 201);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/schedine/" + sched + "/confirm").then().statusCode(200);
+
+        // Risultato 2-1 → 1X2 "1" giusto, 3 gol = Over → U/O "U" sbagliato: vince SOLO il Totocalcio.
+        given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":2,\"awayScore\":1}")
+                .when().put("/admin/matches/" + m + "/result").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/close").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/process").then().statusCode(200)
+                .body("notifications.sent", is(1));
+
+        // Una sola notifica per la schedina, gioco TOTOCALCIO.
+        given().header("Authorization", auth).get("/notifications").then().statusCode(200)
+                .body("findAll { it.schedinaId == " + sched + " }.size()", is(1))
+                .body("find { it.schedinaId == " + sched + " }.game", equalTo("TOTOCALCIO"));
+
+        // Ri-elaborazione: idempotente, nessun duplicato (skipped, non sent).
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/process").then().statusCode(200)
+                .body("notifications.sent", is(0)).body("notifications.skipped", is(1));
+        given().header("Authorization", auth).get("/notifications").then().statusCode(200)
+                .body("findAll { it.schedinaId == " + sched + " }.size()", is(1));
+
+        // Cambio risultato a 0-0 → 1X2 "X" (l'1 ora sbaglia), 0 gol = Under → "U" giusto: vince SOLO l'U/O.
+        given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":0,\"awayScore\":0}")
+                .when().put("/admin/matches/" + m + "/result").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/process").then().statusCode(200);
+
+        // La notifica obsoleta (TOTOCALCIO) è rimossa e ne resta una sola, gioco UNDER_OVER.
+        given().header("Authorization", auth).get("/notifications").then().statusCode(200)
+                .body("findAll { it.schedinaId == " + sched + " }.size()", is(1))
+                .body("find { it.schedinaId == " + sched + " }.game", equalTo("UNDER_OVER"));
+    }
+
+    @Test
     void scommessa_di_partita_vincitore_auto() {
         String auth = "Bearer " + token();
         long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
