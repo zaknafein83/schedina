@@ -274,6 +274,36 @@ class GiornataFlowTest {
     }
 
     @Test
+    void schedina_unica_per_utente_e_concorso() {
+        String auth = "Bearer " + token();
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
+        long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
+        long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
+        long g = post(auth, "/admin/giornate", "{\"leagueId\":" + leagueId + ",\"name\":\"g\",\"number\":1}", 201);
+        long m = post(auth, "/admin/matches",
+                "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}", 201);
+        long c = post(auth, "/admin/concorsi",
+                "{\"name\":\"Turno 1\",\"number\":1,\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
+        given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + m + "}")
+                .post("/admin/concorsi/" + c + "/matches").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/open").then().statusCode(200);
+
+        String body = "{\"concorsoId\":" + c + ",\"pronostici\":[{\"matchId\":" + m + ",\"choice1x2\":\"1\",\"choiceUo\":\"O\"}]}";
+        // Prima schedina: ok.
+        long sched = post(auth, "/schedine", body, 201);
+        // Seconda schedina sullo stesso concorso: bloccata.
+        given().header("Authorization", auth).contentType("application/json").body(body)
+                .when().post("/schedine").then().statusCode(400)
+                .body("error", equalTo("Hai già una schedina per questo concorso"));
+
+        // Dopo l'annullamento può rigiocare.
+        given().header("Authorization", auth).delete("/schedine/" + sched).then().statusCode(204);
+        given().header("Authorization", auth).contentType("application/json").body(body)
+                .when().post("/schedine").then().statusCode(201);
+    }
+
+    @Test
     void concorso_timing_calcolato_dalla_data() {
         String auth = "Bearer " + token();
         // Numeri di turno alti e distinti per non collidere con gli altri test.
