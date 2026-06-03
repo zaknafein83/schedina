@@ -219,6 +219,53 @@ class GiornataFlowTest {
     }
 
     @Test
+    void concorsi_chiusi_archivio() {
+        String auth = "Bearer " + token();
+        long nano = System.nanoTime();
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + nano + "\"}", 201);
+        long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
+        long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
+        long g = post(auth, "/admin/giornate", "{\"leagueId\":" + leagueId + ",\"name\":\"g\",\"number\":1}", 201);
+
+        String matchBody = "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g
+                + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}";
+        String concorsoBody = "\"number\":1,\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}";
+
+        // Concorso CHIUSO: aperto e poi chiuso (CLOSED) → deve comparire in archivio.
+        long chiuso = post(auth, "/admin/concorsi", "{\"name\":\"Archivio-chiuso-" + nano + "\"," + concorsoBody, 201);
+        long mC = post(auth, "/admin/matches", matchBody, 201);
+        given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + mC + "}")
+                .post("/admin/concorsi/" + chiuso + "/matches").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + chiuso + "/open").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + chiuso + "/close").then().statusCode(200).body("status", equalTo("CLOSED"));
+
+        // Concorso APERTO: non deve comparire in archivio, ma sì tra gli aperti.
+        long aperto = post(auth, "/admin/concorsi", "{\"name\":\"Archivio-aperto-" + nano + "\"," + concorsoBody, 201);
+        long mA = post(auth, "/admin/matches", matchBody, 201);
+        given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + mA + "}")
+                .post("/admin/concorsi/" + aperto + "/matches").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + aperto + "/open").then().statusCode(200);
+
+        // Concorso BOZZA (DRAFT): non deve comparire da nessuna parte lato utente.
+        long bozza = post(auth, "/admin/concorsi", "{\"name\":\"Archivio-bozza-" + nano + "\"," + concorsoBody, 201);
+
+        // /concorsi/chiusi: contiene il CHIUSO, non l'APERTO né la BOZZA.
+        given().header("Authorization", auth).get("/concorsi/chiusi").then().statusCode(200)
+                .body("findAll { it.id == " + chiuso + " }.size()", is(1))
+                .body("find { it.id == " + chiuso + " }.status", equalTo("CLOSED"))
+                .body("findAll { it.id == " + aperto + " }.size()", is(0))
+                .body("findAll { it.id == " + bozza + " }.size()", is(0));
+
+        // /concorsi (aperti): contiene l'APERTO, non il CHIUSO.
+        given().header("Authorization", auth).get("/concorsi").then().statusCode(200)
+                .body("findAll { it.id == " + aperto + " }.size()", is(1))
+                .body("findAll { it.id == " + chiuso + " }.size()", is(0));
+    }
+
+    @Test
     void scommessa_di_partita_vincitore_auto() {
         String auth = "Bearer " + token();
         long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);

@@ -37,6 +37,15 @@ public class UserConcorsoResource {
         return Concorso.findOpen().stream().map(this::resp).toList();
     }
 
+    /** Archivio: concorsi chiusi ed elaborati (più recenti prima). */
+    @GET
+    @Path("/chiusi")
+    @Transactional
+    public List<ConcorsoDto.ConcorsoResponse> listClosed(@HeaderParam("Authorization") String token) {
+        auth.requireAuth(token);
+        return Concorso.findClosed().stream().map(this::resp).toList();
+    }
+
     @GET
     @Path("/{id}")
     @Transactional

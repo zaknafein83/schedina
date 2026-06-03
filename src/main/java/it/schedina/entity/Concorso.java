@@ -98,6 +98,12 @@ public class Concorso extends PanacheEntityBase {
         return find("status = ?1 order by closeAt", Status.OPEN).list();
     }
 
+    /** Concorsi non più giocabili da mostrare in archivio agli utenti: chiusi ed elaborati. */
+    public static List<Concorso> findClosed() {
+        return find("status in (?1, ?2) order by number desc, closeAt desc",
+                Status.CLOSED, Status.PROCESSED).list();
+    }
+
     public static List<Concorso> allOrdered() {
         return find("order by number desc, id desc").list();
     }
