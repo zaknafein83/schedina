@@ -8,6 +8,7 @@ import it.schedina.entity.Rule;
 import it.schedina.entity.Schedina;
 import it.schedina.entity.Team;
 import it.schedina.service.AuthService;
+import it.schedina.service.MontepremiService;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
@@ -21,6 +22,7 @@ import java.util.List;
 public class UserConcorsoResource {
 
     @Inject AuthService auth;
+    @Inject MontepremiService montepremi;
 
     private ConcorsoDto.ConcorsoResponse resp(Concorso c) {
         Rule rule = c.ruleId != null ? Rule.findById(c.ruleId) : null;
@@ -43,6 +45,17 @@ public class UserConcorsoResource {
         Concorso c = Concorso.findById(id);
         if (c == null) throw new NotFoundException();
         return resp(c);
+    }
+
+    /** Montepremi del concorso + potenziali vincite per soglia (visibile mentre si compila). */
+    @GET
+    @Path("/{id}/montepremi")
+    @Transactional
+    public MontepremiService.Projection montepremiProjection(@HeaderParam("Authorization") String token, @PathParam("id") Long id) {
+        auth.requireAuth(token);
+        Concorso c = Concorso.findById(id);
+        if (c == null) throw new NotFoundException();
+        return montepremi.projectionFor(c);
     }
 
     @GET

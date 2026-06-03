@@ -53,18 +53,34 @@ public class Concorso extends PanacheEntityBase {
     @Column(name = "winning_thresholds", nullable = false, columnDefinition = "text")
     public List<Integer> winningThresholds = new ArrayList<>();
 
-    /** Premi (€) per soglia vincente del Totocalcio (1X2). Specifici del concorso. */
+    /** Premi (€) per soglia del Totocalcio (1X2): per i concorsi legacy = inseriti a mano;
+     *  per quelli a montepremi = premio per-vincitore CALCOLATO all'elaborazione (per UI/audit). */
     @Convert(converter = JsonListConverters.IntLongMap.class)
     @Column(name = "prizes_1x2", nullable = false, columnDefinition = "text")
     public Map<Integer, Long> prizes1x2 = new LinkedHashMap<>();
 
-    /** Premi (€) per soglia vincente dell'Under/Over. Specifici del concorso. */
+    /** Premi (€) per soglia dell'Under/Over (vedi prizes1x2). */
     @Convert(converter = JsonListConverters.IntLongMap.class)
     @Column(name = "prizes_uo", nullable = false, columnDefinition = "text")
     public Map<Integer, Long> prizesUo = new LinkedHashMap<>();
 
+    /** Montepremi in ingresso usato dal concorso (snapshot), per gioco. Solo concorsi a montepremi. */
+    @Column(name = "montepremi_1x2")
+    public Long montepremi1x2;
+
+    @Column(name = "montepremi_uo")
+    public Long montepremiUo;
+
+    /** true = premi calcolati dal montepremi (catena per turno); false = legacy con premi a mano. */
+    @Column(name = "montepremi_managed", nullable = false)
+    public boolean montepremiManaged = true;
+
     @Column(name = "created_at", nullable = false)
     public LocalDateTime createdAt = LocalDateTime.now();
+
+    public static List<Concorso> findManagedOrdered() {
+        return find("montepremiManaged = true order by number, id").list();
+    }
 
     /** Premio del Totocalcio per un dato numero di risultati esatti (0 se non previsto). */
     public long prize1x2For(int correct) {
