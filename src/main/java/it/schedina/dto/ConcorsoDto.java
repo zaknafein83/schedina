@@ -5,6 +5,7 @@ import it.schedina.entity.Rule;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -13,13 +14,19 @@ public final class ConcorsoDto {
 
     private ConcorsoDto() {}
 
+    /**
+     * Creazione/modifica concorso. {@code date} = giorno delle partite: da essa il server calcola
+     * apertura (giorno dopo il turno precedente, 00:00) e chiusura (20:30). {@code openAt}/{@code closeAt}
+     * sono override manuali facoltativi (hanno priorità sulla data).
+     */
     public record ConcorsoRequest(
             @NotBlank String name,
             @NotNull Integer number,
             Long seasonId,
             Long ruleId,
-            @NotNull LocalDateTime openAt,
-            @NotNull LocalDateTime closeAt,
+            LocalDate date,
+            LocalDateTime openAt,
+            LocalDateTime closeAt,
             List<Integer> winningThresholds
     ) {}
 
