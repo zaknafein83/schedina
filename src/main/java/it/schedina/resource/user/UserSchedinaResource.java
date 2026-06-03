@@ -48,6 +48,49 @@ public class UserSchedinaResource {
         return new SchedinaDto.WinningsResponse(t1 + tu, t1, tu, vincenti);
     }
 
+    /** Classifica giocatori per vincite totali (somma premi 1X2 + U/O su tutte le schedine giocate). */
+    @GET
+    @Path("/classifica")
+    @Transactional
+    public List<SchedinaDto.ClassificaRow> classifica(@HeaderParam("Authorization") String token) {
+        auth.requireAuth(token);
+        var giocate = List.of(Schedina.Status.CONFIRMED, Schedina.Status.PROCESSED,
+                Schedina.Status.WINNING, Schedina.Status.NOT_WINNING);
+        // Aggrega per utente: [totale1x2, totaleUo, schedineVincenti, schedineGiocate].
+        Map<Long, long[]> agg = new java.util.HashMap<>();
+        for (Schedina s : Schedina.<Schedina>find("status in ?1", giocate).list()) {
+            long[] a = agg.computeIfAbsent(s.userId, k -> new long[4]);
+            a[0] += s.prize1x2 != null ? s.prize1x2 : 0;
+            a[1] += s.prizeUo != null ? s.prizeUo : 0;
+            if (Boolean.TRUE.equals(s.isWinner)) a[2]++;
+            a[3]++;
+        }
+        List<SchedinaDto.ClassificaRow> rows = new java.util.ArrayList<>();
+        for (var e : agg.entrySet()) {
+            User u = User.findById(e.getKey());
+            long[] a = e.getValue();
+            String fullName = u != null ? ((u.firstName != null ? u.firstName : "") + " "
+                    + (u.lastName != null ? u.lastName : "")).trim() : null;
+            rows.add(new SchedinaDto.ClassificaRow(0, e.getKey(), u != null ? u.username : null, fullName,
+                    a[0] + a[1], a[0], a[1], (int) a[2], (int) a[3]));
+        }
+        // Ordina per totale desc, poi per schedine vincenti desc, poi per username.
+        rows.sort((x, y) -> {
+            int c = Long.compare(y.total(), x.total());
+            if (c != 0) return c;
+            c = Integer.compare(y.schedineVincenti(), x.schedineVincenti());
+            if (c != 0) return c;
+            return String.valueOf(x.username()).compareToIgnoreCase(String.valueOf(y.username()));
+        });
+        List<SchedinaDto.ClassificaRow> ranked = new java.util.ArrayList<>(rows.size());
+        int pos = 1;
+        for (SchedinaDto.ClassificaRow r : rows) {
+            ranked.add(new SchedinaDto.ClassificaRow(pos++, r.userId(), r.username(), r.fullName(),
+                    r.total(), r.totalTotocalcio(), r.totalUnderOver(), r.schedineVincenti(), r.schedineGiocate()));
+        }
+        return ranked;
+    }
+
     @POST
     @Transactional
     public Response create(@HeaderParam("Authorization") String token, @Valid SchedinaDto.CreateRequest req) {

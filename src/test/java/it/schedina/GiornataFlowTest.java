@@ -274,6 +274,54 @@ class GiornataFlowTest {
     }
 
     @Test
+    void classifica_per_vincite() {
+        String auth = "Bearer " + token();
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
+        long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
+        long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
+        long g = post(auth, "/admin/giornate", "{\"leagueId\":" + leagueId + ",\"name\":\"g\",\"number\":1}", 201);
+        long m = post(auth, "/admin/matches",
+                "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}", 201);
+        long ruleId = post(auth, "/admin/rules", "{\"name\":\"R " + System.nanoTime() + "\",\"winningThresholds\":[1]}", 201);
+        long c = post(auth, "/admin/concorsi",
+                "{\"name\":\"Turno 1\",\"number\":1,\"ruleId\":" + ruleId + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
+        given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + m + "}")
+                .post("/admin/concorsi/" + c + "/matches").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/open").then().statusCode(200);
+        long sched = post(auth, "/schedine",
+                "{\"concorsoId\":" + c + ",\"pronostici\":[{\"matchId\":" + m + ",\"choice1x2\":\"1\",\"choiceUo\":\"O\"}]}", 201);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/schedine/" + sched + "/confirm").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":2,\"awayScore\":1}")
+                .when().put("/admin/matches/" + m + "/result").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/close").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/process").then().statusCode(200);
+
+        long meId = given().header("Authorization", auth).get("/auth/me")
+                .then().statusCode(200).extract().jsonPath().getLong("id");
+
+        var jp = given().header("Authorization", auth).get("/schedine/classifica")
+                .then().statusCode(200).extract().jsonPath();
+
+        // Classifica ordinata per totale decrescente.
+        java.util.List<?> totals = jp.getList("total");
+        org.junit.jupiter.api.Assertions.assertFalse(totals.isEmpty());
+        for (int i = 1; i < totals.size(); i++) {
+            org.junit.jupiter.api.Assertions.assertTrue(
+                    ((Number) totals.get(i - 1)).longValue() >= ((Number) totals.get(i)).longValue(),
+                    "classifica non ordinata per totale desc");
+        }
+        // Il giocatore che ha appena vinto compare con almeno una giocata e una vincita conteggiata.
+        org.junit.jupiter.api.Assertions.assertTrue(
+                jp.getInt("find { it.userId == " + meId + " }.schedineGiocate") >= 1);
+        org.junit.jupiter.api.Assertions.assertTrue(
+                jp.getInt("find { it.userId == " + meId + " }.schedineVincenti") >= 1);
+    }
+
+    @Test
     void schedina_unica_per_utente_e_concorso() {
         String auth = "Bearer " + token();
         long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);

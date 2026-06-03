@@ -49,6 +49,13 @@ public final class SchedinaDto {
             long total, long totalTotocalcio, long totalUnderOver, int schedineVincenti
     ) {}
 
+    /** Riga della classifica giocatori: vincite totali aggregate per utente. */
+    public record ClassificaRow(
+            int rank, Long userId, String username, String fullName,
+            long total, long totalTotocalcio, long totalUnderOver,
+            int schedineVincenti, int schedineGiocate
+    ) {}
+
     public record SelezioneResponse(
             Long matchId, String home, String away,
             String choice1x2, String choiceUo,
