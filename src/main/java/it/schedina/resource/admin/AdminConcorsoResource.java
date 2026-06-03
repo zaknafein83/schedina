@@ -14,6 +14,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -68,6 +69,8 @@ public class AdminConcorsoResource {
         c.openAt = req.openAt();
         c.closeAt = req.closeAt();
         if (req.winningThresholds() != null) c.winningThresholds = new ArrayList<>(req.winningThresholds());
+        if (req.prizes1x2() != null) c.prizes1x2 = new LinkedHashMap<>(req.prizes1x2());
+        if (req.prizesUo() != null) c.prizesUo = new LinkedHashMap<>(req.prizesUo());
         c.persist();
         return Response.status(201).entity(resp(c)).build();
     }
@@ -87,7 +90,14 @@ public class AdminConcorsoResource {
         if (req.openAt() != null) c.openAt = req.openAt();
         if (req.closeAt() != null) c.closeAt = req.closeAt();
         if (req.winningThresholds() != null) c.winningThresholds = new ArrayList<>(req.winningThresholds());
+        if (req.prizes1x2() != null) c.prizes1x2 = new LinkedHashMap<>(req.prizes1x2());
+        if (req.prizesUo() != null) c.prizesUo = new LinkedHashMap<>(req.prizesUo());
         c.persist();
+        // Premi/soglie possono essere cambiati → se già elaborato, rielabora per aggiornare le vincite.
+        if (c.status == Concorso.Status.PROCESSED) {
+            scoring.process(c);
+            if (c.status == Concorso.Status.PROCESSED) notifications.sendConcorsoNotifications(c.id);
+        }
         return resp(c);
     }
 
