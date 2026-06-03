@@ -14,7 +14,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +26,7 @@ public class AdminConcorsoResource {
     @Inject AuthService auth;
     @Inject SchedinaScoringEngine scoring;
     @Inject NotificationService notifications;
+    @Inject it.schedina.service.MontepremiService montepremi;
 
     private ConcorsoDto.ConcorsoResponse resp(Concorso c) {
         Rule rule = c.ruleId != null ? Rule.findById(c.ruleId) : null;
@@ -57,6 +57,28 @@ public class AdminConcorsoResource {
         return resp(c);
     }
 
+    /** Montepremi corrente {1x2, U/O} (fine catena dei concorsi elaborati). */
+    @GET
+    @Path("/montepremi/current")
+    @Transactional
+    public Map<String, Long> montepremiCurrent(@HeaderParam("Authorization") String token) {
+        auth.requireAdminOrMod(token);
+        long[] m = montepremi.current();
+        return Map.of("montepremi1x2", m[0], "montepremiUo", m[1]);
+    }
+
+    /** Proiezione montepremi + premi per soglia del concorso (managed o legacy). */
+    @GET
+    @Path("/{id}/montepremi")
+    @Transactional
+    public it.schedina.service.MontepremiService.Projection montepremiProjection(
+            @HeaderParam("Authorization") String token, @PathParam("id") Long id) {
+        auth.requireAdminOrMod(token);
+        Concorso c = Concorso.findById(id);
+        if (c == null) throw new NotFoundException();
+        return montepremi.projectionFor(c);
+    }
+
     @POST
     @Transactional
     public Response create(@HeaderParam("Authorization") String token, @Valid ConcorsoDto.ConcorsoRequest req) {
@@ -69,8 +91,6 @@ public class AdminConcorsoResource {
         c.openAt = req.openAt();
         c.closeAt = req.closeAt();
         if (req.winningThresholds() != null) c.winningThresholds = new ArrayList<>(req.winningThresholds());
-        if (req.prizes1x2() != null) c.prizes1x2 = new LinkedHashMap<>(req.prizes1x2());
-        if (req.prizesUo() != null) c.prizesUo = new LinkedHashMap<>(req.prizesUo());
         c.persist();
         return Response.status(201).entity(resp(c)).build();
     }
@@ -90,10 +110,8 @@ public class AdminConcorsoResource {
         if (req.openAt() != null) c.openAt = req.openAt();
         if (req.closeAt() != null) c.closeAt = req.closeAt();
         if (req.winningThresholds() != null) c.winningThresholds = new ArrayList<>(req.winningThresholds());
-        if (req.prizes1x2() != null) c.prizes1x2 = new LinkedHashMap<>(req.prizes1x2());
-        if (req.prizesUo() != null) c.prizesUo = new LinkedHashMap<>(req.prizesUo());
         c.persist();
-        // Premi/soglie possono essere cambiati → se già elaborato, rielabora per aggiornare le vincite.
+        // Soglie/regola possono essere cambiate → se già elaborato, rielabora per aggiornare le vincite.
         if (c.status == Concorso.Status.PROCESSED) {
             scoring.process(c);
             if (c.status == Concorso.Status.PROCESSED) notifications.sendConcorsoNotifications(c.id);

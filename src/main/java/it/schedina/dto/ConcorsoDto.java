@@ -20,15 +20,14 @@ public final class ConcorsoDto {
             Long ruleId,
             @NotNull LocalDateTime openAt,
             @NotNull LocalDateTime closeAt,
-            List<Integer> winningThresholds,
-            Map<Integer, Long> prizes1x2,
-            Map<Integer, Long> prizesUo
+            List<Integer> winningThresholds
     ) {}
 
     public record ConcorsoResponse(
             Long id, Long seasonId, Long ruleId, String ruleName, int number, String name,
             LocalDateTime openAt, LocalDateTime closeAt, Concorso.Status status,
             List<Integer> winningThresholds,
+            boolean montepremiManaged, Long montepremi1x2, Long montepremiUo,
             Map<Integer, Long> prizes1x2, Map<Integer, Long> prizesUo,
             long matchCount, long schedinaCount
     ) {
@@ -36,6 +35,7 @@ public final class ConcorsoDto {
             List<Integer> thresholds = rule != null ? rule.winningThresholds : c.winningThresholds;
             return new ConcorsoResponse(c.id, c.seasonId, c.ruleId, rule != null ? rule.name : null,
                     c.number, c.name, c.openAt, c.closeAt, c.status, thresholds,
+                    c.montepremiManaged, c.montepremi1x2, c.montepremiUo,
                     c.prizes1x2, c.prizesUo, matchCount, schedinaCount);
         }
     }

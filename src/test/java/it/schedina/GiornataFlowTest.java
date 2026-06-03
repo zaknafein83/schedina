@@ -170,50 +170,52 @@ class GiornataFlowTest {
     }
 
     @Test
-    void premi_per_gioco_sul_concorso_e_rielaborazione() {
+    void montepremi_concorso_13_su_13() {
         String auth = "Bearer " + token();
-        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
+        long nano = System.nanoTime();
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + nano + "\"}", 201);
         long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
         long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
-        long g = post(auth, "/admin/giornate",
-                "{\"leagueId\":" + leagueId + ",\"name\":\"g\",\"number\":1}", 201);
-        long m = post(auth, "/admin/matches",
-                "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}", 201);
-
-        long ruleId = post(auth, "/admin/rules",
-                "{\"name\":\"R " + System.nanoTime() + "\",\"winningThresholds\":[1]}", 201);
-        // Premi DIVERSI per gioco, sul concorso: 1X2 = 1000, U/O = 5000.
+        long g = post(auth, "/admin/giornate", "{\"leagueId\":" + leagueId + ",\"name\":\"g\",\"number\":1}", 201);
+        long ruleId = post(auth, "/admin/rules", "{\"name\":\"R " + nano + "\",\"winningThresholds\":[13]}", 201);
         long c = post(auth, "/admin/concorsi",
-                "{\"name\":\"Turno P\",\"number\":1,\"ruleId\":" + ruleId + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\",\"prizes1x2\":{\"1\":1000},\"prizesUo\":{\"1\":5000}}", 201);
-        given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + m + "}")
-                .post("/admin/concorsi/" + c + "/matches").then().statusCode(200);
+                "{\"name\":\"T1\",\"number\":1,\"ruleId\":" + ruleId + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
+
+        // 13 partite (stesse due squadre), tutte aggiunte al concorso; pronostico 1 fisso + Over.
+        long[] ids = new long[13];
+        StringBuilder pron = new StringBuilder();
+        for (int i = 0; i < 13; i++) {
+            long m = post(auth, "/admin/matches",
+                    "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}", 201);
+            ids[i] = m;
+            given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + m + "}")
+                    .post("/admin/concorsi/" + c + "/matches").then().statusCode(200);
+            if (i > 0) pron.append(",");
+            pron.append("{\"matchId\":").append(m).append(",\"choice1x2\":\"1\",\"choiceUo\":\"O\"}");
+        }
         given().header("Authorization", auth).contentType("application/json")
                 .post("/admin/concorsi/" + c + "/open").then().statusCode(200);
 
-        // Vince ENTRAMBI i giochi (1X2 "1" e U/O "O", coerenti con 2-1 = 3 gol Over).
-        long sched = post(auth, "/schedine",
-                "{\"concorsoId\":" + c + ",\"pronostici\":[{\"matchId\":" + m + ",\"choice1x2\":\"1\",\"choiceUo\":\"O\"}]}", 201);
+        long sched = post(auth, "/schedine", "{\"concorsoId\":" + c + ",\"pronostici\":[" + pron + "]}", 201);
         given().header("Authorization", auth).contentType("application/json")
                 .post("/schedine/" + sched + "/confirm").then().statusCode(200);
-        given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":2,\"awayScore\":1}")
-                .when().put("/admin/matches/" + m + "/result").then().statusCode(200);
+
+        // Tutte 1-0: 1X2 "1" giusto ×13 (count 13); 1 gol = Under → "O" sbagliato ×13 (count 0).
+        for (long m : ids) {
+            given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":1,\"awayScore\":0}")
+                    .when().put("/admin/matches/" + m + "/result").then().statusCode(200);
+        }
         given().header("Authorization", auth).contentType("application/json")
                 .post("/admin/concorsi/" + c + "/close").then().statusCode(200);
         given().header("Authorization", auth).contentType("application/json")
                 .post("/admin/concorsi/" + c + "/process").then().statusCode(200);
 
-        // Premi distinti: 1000 sul Totocalcio, 5000 sull'U/O.
+        // Il concorso è a montepremi: input M (qualunque sia nella catena) e premio 13 = 75% di M / 1 vincitore.
+        int m1x2 = given().header("Authorization", auth).get("/admin/concorsi/" + c)
+                .then().statusCode(200).body("montepremiManaged", is(true)).extract().path("montepremi1x2");
         given().header("Authorization", auth).get("/schedine/" + sched).then().statusCode(200)
-                .body("prize1x2", is(1000)).body("prizeUo", is(5000));
-
-        // Modifica del premio 1X2 sul concorso (già PROCESSED) → rielabora in automatico.
-        given().header("Authorization", auth).contentType("application/json")
-                .body("{\"prizes1x2\":{\"1\":2000}}")
-                .when().patch("/admin/concorsi/" + c).then().statusCode(200);
-
-        // Il premio 1X2 è ricalcolato a 2000, l'U/O resta 5000.
-        given().header("Authorization", auth).get("/schedine/" + sched).then().statusCode(200)
-                .body("prize1x2", is(2000)).body("prizeUo", is(5000));
+                .body("isWinner1x2", is(true)).body("prize1x2", is(m1x2 * 75 / 100))
+                .body("isWinnerUo", is(false)).body("prizeUo", is(0));
     }
 
     @Test

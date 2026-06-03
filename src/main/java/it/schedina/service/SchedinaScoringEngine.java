@@ -18,6 +18,9 @@ import java.util.*;
 @ApplicationScoped
 public class SchedinaScoringEngine {
 
+    @jakarta.inject.Inject
+    MontepremiService montepremi;
+
     private static final Set<String> VALID_1X2 = Set.of("1", "X", "2");
     private static final Set<String> VALID_UO = Set.of("U", "O");
 
@@ -115,9 +118,15 @@ public class SchedinaScoringEngine {
             if (allScored) {
                 s.isWinner1x2 = thresholds.contains(correct1x2);
                 s.isWinnerUo = thresholds.contains(correctUo);
-                // Premio della soglia centrata in ciascun gioco (dal concorso, separati per gioco).
-                s.prize1x2 = Boolean.TRUE.equals(s.isWinner1x2) ? c.prize1x2For(correct1x2) : 0L;
-                s.prizeUo = Boolean.TRUE.equals(s.isWinnerUo) ? c.prizeUoFor(correctUo) : 0L;
+                // Premi: per i concorsi a montepremi li assegna MontepremiService (sotto);
+                // per i legacy si usano i premi fissi inseriti a mano sul concorso.
+                if (c.montepremiManaged) {
+                    s.prize1x2 = 0L;
+                    s.prizeUo = 0L;
+                } else {
+                    s.prize1x2 = Boolean.TRUE.equals(s.isWinner1x2) ? c.prize1x2For(correct1x2) : 0L;
+                    s.prizeUo = Boolean.TRUE.equals(s.isWinnerUo) ? c.prizeUoFor(correctUo) : 0L;
+                }
                 s.isWinner = Boolean.TRUE.equals(s.isWinner1x2) || Boolean.TRUE.equals(s.isWinnerUo);
                 s.status = s.isWinner ? Schedina.Status.WINNING : Schedina.Status.NOT_WINNING;
                 if (Boolean.TRUE.equals(s.isWinner)) winners++;
@@ -130,6 +139,8 @@ public class SchedinaScoringEngine {
             c.status = Concorso.Status.PROCESSED;
             c.persist();
         }
+        // Concorsi a montepremi: ricalcola la catena per turno (premi + cascata sui turni successivi).
+        if (c.montepremiManaged) montepremi.recompute();
         return Map.ofEntries(
                 Map.entry("concorsoId", c.id),
                 Map.entry("matches", matches.size()),
