@@ -56,6 +56,11 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-flyway</artifactId>
         </dependency>
+        <!-- Scheduler: apertura/chiusura automatica dei concorsi -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-scheduler</artifactId>
+        </dependency>
         <!-- Flyway 10.x richiede il modulo DB separato per PostgreSQL -->
         <dependency>
             <groupId>org.flywaydb</groupId>

@@ -1,11 +1,17 @@
 package it.schedina;
 
 import io.quarkus.test.junit.QuarkusTest;
+import it.schedina.service.ConcorsoScheduler;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
+
+import java.time.LocalDateTime;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
 
 /**
  * E2E del redesign #3: giornata di campionato per-lega → Concorso (selezione partite) →
@@ -13,6 +19,8 @@ import static org.hamcrest.Matchers.is;
  */
 @QuarkusTest
 class GiornataFlowTest {
+
+    @Inject ConcorsoScheduler scheduler;
 
     private String token() {
         return given().contentType("application/json")
@@ -263,6 +271,79 @@ class GiornataFlowTest {
         given().header("Authorization", auth).get("/concorsi").then().statusCode(200)
                 .body("findAll { it.id == " + aperto + " }.size()", is(1))
                 .body("findAll { it.id == " + chiuso + " }.size()", is(0));
+    }
+
+    @Test
+    void concorso_timing_calcolato_dalla_data() {
+        String auth = "Bearer " + token();
+        // Numeri di turno alti e distinti per non collidere con gli altri test.
+        int n1 = 100000 + (int) (System.nanoTime() % 800000);
+        int n2 = n1 + 1;
+
+        // Primo concorso (nessun turno precedente): chiusura = data 20:30; apertura = null (la apre l'admin).
+        long c1 = post(auth, "/admin/concorsi",
+                "{\"name\":\"T-" + n1 + "\",\"number\":" + n1 + ",\"date\":\"2026-06-07\"}", 201);
+        given().header("Authorization", auth).get("/admin/concorsi/" + c1).then().statusCode(200)
+                .body("closeAt", startsWith("2026-06-07T20:30"))
+                .body("openAt", nullValue());
+
+        // Secondo concorso: apertura = giorno dopo la chiusura del precedente (2026-06-08 00:00).
+        long c2 = post(auth, "/admin/concorsi",
+                "{\"name\":\"T-" + n2 + "\",\"number\":" + n2 + ",\"date\":\"2026-06-14\"}", 201);
+        given().header("Authorization", auth).get("/admin/concorsi/" + c2).then().statusCode(200)
+                .body("closeAt", startsWith("2026-06-14T20:30"))
+                .body("openAt", startsWith("2026-06-08T00:00"));
+    }
+
+    @Test
+    void concorso_scheduler_apre_e_chiude() {
+        String auth = "Bearer " + token();
+        int num = 100000 + (int) (System.nanoTime() % 800000);
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + num + "\"}", 201);
+        long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
+        long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
+        long g = post(auth, "/admin/giornate",
+                "{\"leagueId\":" + leagueId + ",\"name\":\"g\",\"number\":" + num + "}", 201);
+        String matchBody = "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g
+                + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}";
+
+        // ---- Auto-APERTURA: apertura passata, chiusura futura, DRAFT ----
+        long cApri = post(auth, "/admin/concorsi",
+                "{\"name\":\"auto-open\",\"number\":" + num
+                        + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T20:30:00\"}", 201);
+
+        // Senza partite lo scheduler NON apre.
+        scheduler.run(LocalDateTime.now());
+        given().header("Authorization", auth).get("/admin/concorsi/" + cApri).then().statusCode(200)
+                .body("status", equalTo("DRAFT"));
+
+        // Con una partita selezionata lo scheduler apre.
+        long mApri = post(auth, "/admin/matches", matchBody, 201);
+        given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + mApri + "}")
+                .post("/admin/concorsi/" + cApri + "/matches").then().statusCode(200);
+        scheduler.run(LocalDateTime.now());
+        given().header("Authorization", auth).get("/admin/concorsi/" + cApri).then().statusCode(200)
+                .body("status", equalTo("OPEN"));
+
+        // ---- Auto-CHIUSURA: chiusura passata, aperto manualmente ----
+        long cChiudi = post(auth, "/admin/concorsi",
+                "{\"name\":\"auto-close\",\"number\":" + num + ",\"closeAt\":\"2020-01-02T20:30:00\"}", 201);
+        long mChiudi = post(auth, "/admin/matches", matchBody, 201);
+        given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + mChiudi + "}")
+                .post("/admin/concorsi/" + cChiudi + "/matches").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + cChiudi + "/open").then().statusCode(200).body("status", equalTo("OPEN"));
+
+        scheduler.run(LocalDateTime.now());
+        given().header("Authorization", auth).get("/admin/concorsi/" + cChiudi).then().statusCode(200)
+                .body("status", equalTo("CLOSED"));
+
+        // ---- Riapertura manuale: lo scheduler NON richiude (close_auto = false) ----
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + cChiudi + "/reopen").then().statusCode(200).body("status", equalTo("OPEN"));
+        scheduler.run(LocalDateTime.now());
+        given().header("Authorization", auth).get("/admin/concorsi/" + cChiudi).then().statusCode(200)
+                .body("status", equalTo("OPEN"));
     }
 
     @Test

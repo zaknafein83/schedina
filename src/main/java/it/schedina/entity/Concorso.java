@@ -38,11 +38,16 @@ public class Concorso extends PanacheEntityBase {
     @Column(nullable = false, length = 150)
     public String name;
 
-    @Column(name = "open_at", nullable = false)
+    /** Apertura programmata. null = nessuna apertura automatica (primo concorso → apre l'admin). */
+    @Column(name = "open_at")
     public LocalDateTime openAt;
 
     @Column(name = "close_at", nullable = false)
     public LocalDateTime closeAt;
+
+    /** Chiusura automatica (20:30 del giorno delle partite) attiva; una riapertura manuale la disabilita. */
+    @Column(name = "close_auto", nullable = false)
+    public boolean closeAuto = true;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

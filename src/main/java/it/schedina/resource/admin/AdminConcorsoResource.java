@@ -28,10 +28,34 @@ public class AdminConcorsoResource {
     @Inject NotificationService notifications;
     @Inject it.schedina.service.MontepremiService montepremi;
 
+    /** Orario di chiusura del giorno delle partite. */
+    private static final java.time.LocalTime CLOSE_TIME = java.time.LocalTime.of(20, 30);
+
     private ConcorsoDto.ConcorsoResponse resp(Concorso c) {
         Rule rule = c.ruleId != null ? Rule.findById(c.ruleId) : null;
         return ConcorsoDto.ConcorsoResponse.from(c, rule,
                 Match.count("concorsoId", c.id), Schedina.count("concorsoId", c.id));
+    }
+
+    /**
+     * Calcola apertura/chiusura dai dati del concorso. Gli override espliciti hanno priorità sulla data:
+     * chiusura = data @ 20:30; apertura = giorno dopo la chiusura del turno precedente (number-1) alle 00:00,
+     * oppure null se non c'è un turno precedente (primo concorso → lo apre l'admin).
+     */
+    private void applyTiming(Concorso c, ConcorsoDto.ConcorsoRequest req) {
+        if (req.closeAt() != null) {
+            c.closeAt = req.closeAt();
+        } else if (req.date() != null) {
+            c.closeAt = req.date().atTime(CLOSE_TIME);
+        }
+        if (req.openAt() != null) {
+            c.openAt = req.openAt();
+        } else if (req.date() != null) {
+            Concorso prev = Concorso.find("number = ?1 order by closeAt desc", c.number - 1).firstResult();
+            c.openAt = (prev != null && prev.closeAt != null)
+                    ? prev.closeAt.toLocalDate().plusDays(1).atStartOfDay()
+                    : null;
+        }
     }
 
     private MatchDto.MatchResponse enrich(Match m) {
@@ -88,8 +112,10 @@ public class AdminConcorsoResource {
         c.number = req.number();
         c.seasonId = req.seasonId();
         c.ruleId = req.ruleId();
-        c.openAt = req.openAt();
-        c.closeAt = req.closeAt();
+        applyTiming(c, req);
+        if (c.closeAt == null) {
+            return Response.status(400).entity(Map.of("error", "Specifica la data del concorso o una chiusura")).build();
+        }
         if (req.winningThresholds() != null) c.winningThresholds = new ArrayList<>(req.winningThresholds());
         c.persist();
         return Response.status(201).entity(resp(c)).build();
@@ -107,8 +133,7 @@ public class AdminConcorsoResource {
         if (req.number() != null) c.number = req.number();
         if (req.seasonId() != null) c.seasonId = req.seasonId();
         if (req.ruleId() != null) c.ruleId = req.ruleId();
-        if (req.openAt() != null) c.openAt = req.openAt();
-        if (req.closeAt() != null) c.closeAt = req.closeAt();
+        applyTiming(c, req);
         if (req.winningThresholds() != null) c.winningThresholds = new ArrayList<>(req.winningThresholds());
         c.persist();
         // Soglie/regola possono essere cambiate → se già elaborato, rielabora per aggiornare le vincite.
@@ -218,6 +243,8 @@ public class AdminConcorsoResource {
             return Response.status(400).entity(Map.of("error", "Solo un concorso chiuso o elaborato può essere riaperto")).build();
         }
         c.status = Concorso.Status.OPEN;
+        // Riapertura manuale: disattiva la chiusura automatica così lo scheduler non lo richiude.
+        c.closeAuto = false;
         c.persist();
         return Response.ok(resp(c)).build();
     }
