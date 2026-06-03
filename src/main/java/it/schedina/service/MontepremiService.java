@@ -162,7 +162,7 @@ public class MontepremiService {
     public record PrizeRow(int threshold, long amount1x2, long amountUo, boolean divided) {}
 
     /** Proiezione premi {montepremi + righe per soglia} per un concorso (managed o legacy). */
-    public record Projection(boolean managed, long montepremi1x2, long montepremiUo,
+    public record Projection(boolean managed, boolean estimated, long montepremi1x2, long montepremiUo,
                              int schedineGiocate, List<PrizeRow> prizes) {}
 
     private static long projectAmount(long m, int n, int t) {
@@ -173,8 +173,19 @@ public class MontepremiService {
         };
     }
 
+    /** Media delle schedine giocate nei concorsi a montepremi già elaborati (0 se nessuno). */
+    private int avgPlayedPrevious() {
+        long sum = 0;
+        int cnt = 0;
+        for (Concorso c : Concorso.<Concorso>find("montepremiManaged = true and status = ?1", Concorso.Status.PROCESSED).list()) {
+            int n = playedSchedine(c.id).size();
+            if (n > 0) { sum += n; cnt++; }
+        }
+        return cnt > 0 ? Math.round((float) sum / cnt) : 0;
+    }
+
     public Projection projectionFor(Concorso c) {
-        int n = playedSchedine(c.id).size();
+        int actualN = playedSchedine(c.id).size();
         Rule rule = c.ruleId != null ? Rule.findById(c.ruleId) : null;
         List<Integer> thresholds = rule != null ? rule.winningThresholds : c.winningThresholds;
 
@@ -183,14 +194,29 @@ public class MontepremiService {
             List<PrizeRow> rows = thresholds.stream().sorted()
                     .map(t -> new PrizeRow(t, c.prizes1x2.getOrDefault(t, 0L), c.prizesUo.getOrDefault(t, 0L), false))
                     .toList();
-            return new Projection(false, 0, 0, n, rows);
+            return new Projection(false, false, 0, 0, actualN, rows);
+        }
+
+        // 9 e 10 dipendono dal numero di schedine: per un concorso non ancora elaborato si STIMA
+        // con la media delle schedine dei concorsi precedenti (per non dividere il montepremi per ~0).
+        boolean processed = c.status == Concorso.Status.PROCESSED;
+        boolean estimated;
+        int n;
+        if (processed) {
+            n = actualN;
+            estimated = false;
+        } else {
+            int avg = avgPlayedPrevious();
+            n = avg > 0 ? avg : Math.max(actualN, 1);
+            estimated = true;
         }
 
         long[] in = inputFor(c);
         long m1 = in[0], mu = in[1];
+        final int nn = n;
         List<PrizeRow> rows = thresholds.stream().sorted()
-                .map(t -> new PrizeRow(t, projectAmount(m1, n, t), projectAmount(mu, n, t), quotaPct(t) > 0))
+                .map(t -> new PrizeRow(t, projectAmount(m1, nn, t), projectAmount(mu, nn, t), quotaPct(t) > 0))
                 .toList();
-        return new Projection(true, m1, mu, n, rows);
+        return new Projection(true, estimated, m1, mu, nn, rows);
     }
 }
