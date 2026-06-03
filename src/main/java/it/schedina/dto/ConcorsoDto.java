@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public final class ConcorsoDto {
 
@@ -19,18 +20,23 @@ public final class ConcorsoDto {
             Long ruleId,
             @NotNull LocalDateTime openAt,
             @NotNull LocalDateTime closeAt,
-            List<Integer> winningThresholds
+            List<Integer> winningThresholds,
+            Map<Integer, Long> prizes1x2,
+            Map<Integer, Long> prizesUo
     ) {}
 
     public record ConcorsoResponse(
             Long id, Long seasonId, Long ruleId, String ruleName, int number, String name,
             LocalDateTime openAt, LocalDateTime closeAt, Concorso.Status status,
-            List<Integer> winningThresholds, long matchCount, long schedinaCount
+            List<Integer> winningThresholds,
+            Map<Integer, Long> prizes1x2, Map<Integer, Long> prizesUo,
+            long matchCount, long schedinaCount
     ) {
         public static ConcorsoResponse from(Concorso c, Rule rule, long matchCount, long schedinaCount) {
             List<Integer> thresholds = rule != null ? rule.winningThresholds : c.winningThresholds;
             return new ConcorsoResponse(c.id, c.seasonId, c.ruleId, rule != null ? rule.name : null,
-                    c.number, c.name, c.openAt, c.closeAt, c.status, thresholds, matchCount, schedinaCount);
+                    c.number, c.name, c.openAt, c.closeAt, c.status, thresholds,
+                    c.prizes1x2, c.prizesUo, matchCount, schedinaCount);
         }
     }
 }

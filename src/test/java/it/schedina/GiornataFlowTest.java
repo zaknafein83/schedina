@@ -170,7 +170,7 @@ class GiornataFlowTest {
     }
 
     @Test
-    void premi_assegnati_e_rielaborati_su_modifica_regola() {
+    void premi_per_gioco_sul_concorso_e_rielaborazione() {
         String auth = "Bearer " + token();
         long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
         long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
@@ -180,19 +180,19 @@ class GiornataFlowTest {
         long m = post(auth, "/admin/matches",
                 "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\",\"overUnderLine\":2.5}", 201);
 
-        // Soglia [1], premio 1000 € per chi fa 1 esatto.
         long ruleId = post(auth, "/admin/rules",
-                "{\"name\":\"R " + System.nanoTime() + "\",\"winningThresholds\":[1],\"prizes\":{\"1\":1000}}", 201);
+                "{\"name\":\"R " + System.nanoTime() + "\",\"winningThresholds\":[1]}", 201);
+        // Premi DIVERSI per gioco, sul concorso: 1X2 = 1000, U/O = 5000.
         long c = post(auth, "/admin/concorsi",
-                "{\"name\":\"Turno P\",\"number\":1,\"ruleId\":" + ruleId + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
+                "{\"name\":\"Turno P\",\"number\":1,\"ruleId\":" + ruleId + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\",\"prizes1x2\":{\"1\":1000},\"prizesUo\":{\"1\":5000}}", 201);
         given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + m + "}")
                 .post("/admin/concorsi/" + c + "/matches").then().statusCode(200);
         given().header("Authorization", auth).contentType("application/json")
                 .post("/admin/concorsi/" + c + "/open").then().statusCode(200);
 
-        // Vince solo il Totocalcio (1X2 "1" giusto, 3 gol = Over → "U" sbagliato).
+        // Vince ENTRAMBI i giochi (1X2 "1" e U/O "O", coerenti con 2-1 = 3 gol Over).
         long sched = post(auth, "/schedine",
-                "{\"concorsoId\":" + c + ",\"pronostici\":[{\"matchId\":" + m + ",\"choice1x2\":\"1\",\"choiceUo\":\"U\"}]}", 201);
+                "{\"concorsoId\":" + c + ",\"pronostici\":[{\"matchId\":" + m + ",\"choice1x2\":\"1\",\"choiceUo\":\"O\"}]}", 201);
         given().header("Authorization", auth).contentType("application/json")
                 .post("/schedine/" + sched + "/confirm").then().statusCode(200);
         given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":2,\"awayScore\":1}")
@@ -202,18 +202,18 @@ class GiornataFlowTest {
         given().header("Authorization", auth).contentType("application/json")
                 .post("/admin/concorsi/" + c + "/process").then().statusCode(200);
 
-        // Premio 1000 sul Totocalcio, 0 sull'U/O.
+        // Premi distinti: 1000 sul Totocalcio, 5000 sull'U/O.
         given().header("Authorization", auth).get("/schedine/" + sched).then().statusCode(200)
-                .body("prize1x2", is(1000)).body("prizeUo", is(0));
+                .body("prize1x2", is(1000)).body("prizeUo", is(5000));
 
-        // Modifica del premio sulla regola → rielabora i concorsi che la usano.
+        // Modifica del premio 1X2 sul concorso (già PROCESSED) → rielabora in automatico.
         given().header("Authorization", auth).contentType("application/json")
-                .body("{\"name\":\"R-mod\",\"winningThresholds\":[1],\"prizes\":{\"1\":2000}}")
-                .when().patch("/admin/rules/" + ruleId).then().statusCode(200);
+                .body("{\"prizes1x2\":{\"1\":2000}}")
+                .when().patch("/admin/concorsi/" + c).then().statusCode(200);
 
-        // Il premio della schedina è stato ricalcolato a 2000 senza re-elaborare a mano.
+        // Il premio 1X2 è ricalcolato a 2000, l'U/O resta 5000.
         given().header("Authorization", auth).get("/schedine/" + sched).then().statusCode(200)
-                .body("prize1x2", is(2000)).body("prizeUo", is(0));
+                .body("prize1x2", is(2000)).body("prizeUo", is(5000));
     }
 
     @Test

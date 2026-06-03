@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Concorso del Totocalcio: la "schedina" giocabile. Fa riferimento a un turno (number) e
@@ -51,8 +53,30 @@ public class Concorso extends PanacheEntityBase {
     @Column(name = "winning_thresholds", nullable = false, columnDefinition = "text")
     public List<Integer> winningThresholds = new ArrayList<>();
 
+    /** Premi (€) per soglia vincente del Totocalcio (1X2). Specifici del concorso. */
+    @Convert(converter = JsonListConverters.IntLongMap.class)
+    @Column(name = "prizes_1x2", nullable = false, columnDefinition = "text")
+    public Map<Integer, Long> prizes1x2 = new LinkedHashMap<>();
+
+    /** Premi (€) per soglia vincente dell'Under/Over. Specifici del concorso. */
+    @Convert(converter = JsonListConverters.IntLongMap.class)
+    @Column(name = "prizes_uo", nullable = false, columnDefinition = "text")
+    public Map<Integer, Long> prizesUo = new LinkedHashMap<>();
+
     @Column(name = "created_at", nullable = false)
     public LocalDateTime createdAt = LocalDateTime.now();
+
+    /** Premio del Totocalcio per un dato numero di risultati esatti (0 se non previsto). */
+    public long prize1x2For(int correct) {
+        Long p = prizes1x2 != null ? prizes1x2.get(correct) : null;
+        return p != null ? p : 0L;
+    }
+
+    /** Premio dell'Under/Over per un dato numero di risultati esatti (0 se non previsto). */
+    public long prizeUoFor(int correct) {
+        Long p = prizesUo != null ? prizesUo.get(correct) : null;
+        return p != null ? p : 0L;
+    }
 
     public static List<Concorso> findOpen() {
         return find("status = ?1 order by closeAt", Status.OPEN).list();
