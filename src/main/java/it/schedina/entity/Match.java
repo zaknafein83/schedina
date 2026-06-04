@@ -56,9 +56,9 @@ public class Match extends PanacheEntityBase {
     @Column(nullable = false, length = 20)
     public Status status = Status.DRAFT;
 
-    /** Soglia Under/Over della partita (default 2.5). */
+    /** Soglia Under/Over della partita (default 3.5). */
     @Column(name = "over_under_line", nullable = false)
-    public Double overUnderLine = 2.5;
+    public Double overUnderLine = 3.5;
 
     @Column(name = "home_score")
     public Integer homeScore;
@@ -80,7 +80,7 @@ public class Match extends PanacheEntityBase {
     /** Esito U/O dal punteggio rispetto a overUnderLine, o null se non inserito. */
     public String resultUO() {
         if (!hasScore()) return null;
-        double line = overUnderLine != null ? overUnderLine : 2.5;
+        double line = overUnderLine != null ? overUnderLine : 3.5;
         return (homeScore + awayScore) > line ? "O" : "U";
     }
 

@@ -274,6 +274,45 @@ class GiornataFlowTest {
     }
 
     @Test
+    void concorso_uo_default_3_5() {
+        String auth = "Bearer " + token();
+        long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
+        long home = post(auth, "/admin/teams", "{\"name\":\"Casa\",\"leagueId\":" + leagueId + "}", 201);
+        long away = post(auth, "/admin/teams", "{\"name\":\"Ospite\",\"leagueId\":" + leagueId + "}", 201);
+        long g = post(auth, "/admin/giornate", "{\"leagueId\":" + leagueId + ",\"name\":\"g\",\"number\":1}", 201);
+
+        // Partita creata SENZA overUnderLine → default 3.5.
+        long m = given().header("Authorization", auth).contentType("application/json")
+                .body("{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\"}")
+                .when().post("/admin/matches").then().statusCode(201)
+                .body("overUnderLine", equalTo(3.5f)).extract().jsonPath().getLong("id");
+
+        long ruleId = post(auth, "/admin/rules", "{\"name\":\"R " + System.nanoTime() + "\",\"winningThresholds\":[1]}", 201);
+        long c = post(auth, "/admin/concorsi",
+                "{\"name\":\"Turno 1\",\"number\":1,\"ruleId\":" + ruleId + ",\"openAt\":\"2020-01-01T00:00:00\",\"closeAt\":\"2999-12-31T23:59:59\"}", 201);
+        given().header("Authorization", auth).contentType("application/json").body("{\"matchId\":" + m + "}")
+                .post("/admin/concorsi/" + c + "/matches").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/open").then().statusCode(200);
+
+        // 1X2 = "1" (giusto col 2-1) e U/O = "U": a 3.5 il 2-1 (3 gol) è Under → giusto (a 2.5 sarebbe stato Over).
+        long sched = post(auth, "/schedine",
+                "{\"concorsoId\":" + c + ",\"pronostici\":[{\"matchId\":" + m + ",\"choice1x2\":\"1\",\"choiceUo\":\"U\"}]}", 201);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/schedine/" + sched + "/confirm").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json").body("{\"homeScore\":2,\"awayScore\":1}")
+                .when().put("/admin/matches/" + m + "/result").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/close").then().statusCode(200);
+        given().header("Authorization", auth).contentType("application/json")
+                .post("/admin/concorsi/" + c + "/process").then().statusCode(200);
+
+        // Vince sia 1X2 sia U/O: l'U/O "U" è corretto solo perché la soglia è 3.5.
+        given().header("Authorization", auth).get("/schedine/" + sched).then().statusCode(200)
+                .body("isWinner1x2", is(true)).body("correctUoCount", is(1)).body("isWinnerUo", is(true));
+    }
+
+    @Test
     void classifica_per_vincite() {
         String auth = "Bearer " + token();
         long leagueId = post(auth, "/admin/leagues", "{\"name\":\"Lega " + System.nanoTime() + "\"}", 201);
