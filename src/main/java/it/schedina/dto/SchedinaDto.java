@@ -26,7 +26,8 @@ public final class SchedinaDto {
     ) {}
 
     public record SchedinaSummary(
-            Long id, Long userId, String userEmail, String userUsername, Long concorsoId, Schedina.Status status,
+            Long id, Long userId, String userEmail, String userUsername,
+            String userFirstName, String userLastName, Long concorsoId, Schedina.Status status,
             Integer correctCount, Boolean isWinner,
             Integer correct1x2Count, Boolean isWinner1x2, Long prize1x2,
             Integer correctUoCount, Boolean isWinnerUo, Long prizeUo,
@@ -36,6 +37,7 @@ public final class SchedinaDto {
             User u = User.findById(s.userId);
             return new SchedinaSummary(s.id, s.userId,
                     u != null ? u.email : null, u != null ? u.username : null,
+                    u != null ? u.firstName : null, u != null ? u.lastName : null,
                     s.concorsoId, s.status,
                     s.correctCount, s.isWinner,
                     s.correct1x2Count, s.isWinner1x2, s.prize1x2,
