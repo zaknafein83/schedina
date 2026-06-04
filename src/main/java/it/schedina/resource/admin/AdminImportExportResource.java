@@ -240,8 +240,8 @@ public class AdminImportExportResource {
             mt.giornataId = g.id;
             mt.homeTeamId = homeId;
             mt.awayTeamId = awayId;
-            if (hasValue(row, "overUnderLine")) mt.overUnderLine = parseDoubleOrDefault(row.get("overUnderLine"), 2.5);
-            else if (mt.overUnderLine == null) mt.overUnderLine = 2.5;
+            if (hasValue(row, "overUnderLine")) mt.overUnderLine = parseDoubleOrDefault(row.get("overUnderLine"), 3.5);
+            else if (mt.overUnderLine == null) mt.overUnderLine = 3.5;
             mt.scheduledAt = parseDate(row.get("date"));
             mt.persist();
             matchesImported++;
