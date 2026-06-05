@@ -203,6 +203,62 @@ public class AdminConcorsoResource {
         return Response.noContent().build();
     }
 
+    /**
+     * Autocompletamento: seleziona automaticamente partite per lega secondo una distribuzione
+     * (default 5 Serie A, 5 Serie B, 3 Serie C). È un "top-up": tiene le partite già selezionate e
+     * aggiunge solo quelle mancanti per raggiungere il target per lega, pescando dalle disponibili
+     * (stesso turno, non assegnate) in ordine di calendario. La selezione resta editabile.
+     */
+    @POST
+    @Path("/{id}/autofill")
+    @Transactional
+    public Response autofill(@HeaderParam("Authorization") String token, @PathParam("id") Long id,
+            Map<String, Integer> distribution) {
+        auth.requireAdminOrMod(token);
+        Concorso c = Concorso.findById(id);
+        if (c == null) throw new NotFoundException();
+
+        java.util.LinkedHashMap<String, Integer> dist = new java.util.LinkedHashMap<>();
+        if (distribution != null && !distribution.isEmpty()) {
+            dist.putAll(distribution);
+        } else {
+            dist.put("Serie A", 5);
+            dist.put("Serie B", 5);
+            dist.put("Serie C", 3);
+        }
+
+        List<Long> giornateIds = Giornata.findByNumber(c.number).stream().map(g -> g.id).toList();
+        List<Match> available = giornateIds.isEmpty() ? List.of()
+                : Match.<Match>find("giornataId in ?1 and concorsoId is null order by scheduledAt, id", giornateIds).list();
+        List<Match> selected = Match.findByConcorso(c.id);
+
+        List<Map<String, Object>> detail = new ArrayList<>();
+        int totalAdded = 0;
+        for (var e : dist.entrySet()) {
+            String leagueName = e.getKey();
+            int target = e.getValue() != null ? e.getValue() : 0;
+            League lg = League.find("name", leagueName).firstResult();
+            Long lid = lg != null ? lg.id : null;
+            long already = lid == null ? 0 : selected.stream().filter(m -> lid.equals(m.leagueId)).count();
+            int need = (int) Math.max(0, target - already);
+            int added = 0;
+            if (lid != null) {
+                for (Match m : available) {
+                    if (added >= need) break;
+                    if (lid.equals(m.leagueId) && m.concorsoId == null) {
+                        m.concorsoId = c.id;
+                        m.persist();
+                        added++;
+                    }
+                }
+            }
+            totalAdded += added;
+            detail.add(Map.of("league", leagueName, "target", target,
+                    "added", added, "shortfall", Math.max(0, need - added)));
+        }
+        return Response.ok(Map.of("added", totalAdded, "detail", detail)).build();
+    }
+
     // ----- Stato -----
 
     @POST
