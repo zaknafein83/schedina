@@ -429,6 +429,34 @@ class GiornataFlowTest {
     }
 
     @Test
+    void concorso_autofill_deprioritizza_squadre_escluse() {
+        String auth = "Bearer " + token();
+        long nano = System.nanoTime();
+        int turno = 200000 + (int) (nano % 700000);
+        String ln = "LX-" + nano;
+        long lg = post(auth, "/admin/leagues", "{\"name\":\"" + ln + "\"}", 201);
+        long a = post(auth, "/admin/teams", "{\"name\":\"A-" + nano + "\",\"leagueId\":" + lg + "}", 201);
+        long b = post(auth, "/admin/teams", "{\"name\":\"B-" + nano + "\",\"leagueId\":" + lg + "}", 201);
+        // Squadre escluse (deprioritizzate).
+        long x = post(auth, "/admin/teams", "{\"name\":\"X-" + nano + "\",\"leagueId\":" + lg + ",\"autofillExcluded\":true}", 201);
+        long y = post(auth, "/admin/teams", "{\"name\":\"Y-" + nano + "\",\"leagueId\":" + lg + ",\"autofillExcluded\":true}", 201);
+        long g = post(auth, "/admin/giornate", "{\"leagueId\":" + lg + ",\"name\":\"g\",\"number\":" + turno + "}", 201);
+
+        // Una partita "sporca" (con squadra esclusa) PRIMA per calendario, poi quella "pulita".
+        post(auth, "/admin/matches", "{\"homeTeamId\":" + a + ",\"awayTeamId\":" + x + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\"}", 201);
+        long mClean = post(auth, "/admin/matches", "{\"homeTeamId\":" + a + ",\"awayTeamId\":" + b + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-02T20:45:00\"}", 201);
+        post(auth, "/admin/matches", "{\"homeTeamId\":" + x + ",\"awayTeamId\":" + y + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-03T20:45:00\"}", 201);
+
+        long c = post(auth, "/admin/concorsi", "{\"name\":\"AF2\",\"number\":" + turno + ",\"closeAt\":\"2999-12-31T20:30:00\"}", 201);
+
+        // Chiedendo 1 partita, deve scegliere la PULITA anche se viene dopo per calendario.
+        given().header("Authorization", auth).contentType("application/json").body("{\"" + ln + "\":1}")
+                .when().post("/admin/concorsi/" + c + "/autofill").then().statusCode(200).body("added", is(1));
+        given().header("Authorization", auth).get("/admin/concorsi/" + c + "/matches").then().statusCode(200)
+                .body("size()", is(1)).body("[0].id", is((int) mClean));
+    }
+
+    @Test
     void concorso_timing_calcolato_dalla_data() {
         String auth = "Bearer " + token();
         // Numeri di turno alti e distinti per non collidere con gli altri test.

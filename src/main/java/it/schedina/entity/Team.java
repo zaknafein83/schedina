@@ -23,6 +23,10 @@ public class Team extends PanacheEntityBase {
     @Column(name = "is_active", nullable = false)
     public boolean isActive = true;
 
+    /** Se true, la squadra è deprioritizzata nell'autocompletamento del concorso (usata solo se necessario). */
+    @Column(name = "autofill_excluded", nullable = false)
+    public boolean autofillExcluded = false;
+
     // Convenience lookup
     public League league() {
         return League.findById(leagueId);
