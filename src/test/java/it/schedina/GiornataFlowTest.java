@@ -391,6 +391,44 @@ class GiornataFlowTest {
     }
 
     @Test
+    void concorso_autofill_distribuzione() {
+        String auth = "Bearer " + token();
+        long nano = System.nanoTime();
+        int turno = 200000 + (int) (nano % 700000);
+        String[] names = { "LA-" + nano, "LB-" + nano, "LC-" + nano };
+        int[] avail = { 3, 2, 1 }; // partite disponibili per lega
+
+        for (int i = 0; i < 3; i++) {
+            long lg = post(auth, "/admin/leagues", "{\"name\":\"" + names[i] + "\"}", 201);
+            long h = post(auth, "/admin/teams", "{\"name\":\"H" + i + "-" + nano + "\",\"leagueId\":" + lg + "}", 201);
+            long a = post(auth, "/admin/teams", "{\"name\":\"A" + i + "-" + nano + "\",\"leagueId\":" + lg + "}", 201);
+            long g = post(auth, "/admin/giornate", "{\"leagueId\":" + lg + ",\"name\":\"g" + i + "\",\"number\":" + turno + "}", 201);
+            for (int k = 0; k < avail[i]; k++) {
+                post(auth, "/admin/matches", "{\"homeTeamId\":" + h + ",\"awayTeamId\":" + a
+                        + ",\"giornataId\":" + g + ",\"scheduledAt\":\"2999-01-01T20:45:00\"}", 201);
+            }
+        }
+        long c = post(auth, "/admin/concorsi",
+                "{\"name\":\"AF\",\"number\":" + turno + ",\"closeAt\":\"2999-12-31T20:30:00\"}", 201);
+
+        // Distribuzione: 2 da A, 1 da B, 3 da C (ma C ne ha solo 1 → shortfall 2). Totale aggiunte: 4.
+        String dist = "{\"" + names[0] + "\":2,\"" + names[1] + "\":1,\"" + names[2] + "\":3}";
+        given().header("Authorization", auth).contentType("application/json").body(dist)
+                .when().post("/admin/concorsi/" + c + "/autofill").then().statusCode(200)
+                .body("added", is(4))
+                .body("detail.find { it.league == '" + names[2] + "' }.shortfall", is(2));
+        given().header("Authorization", auth).get("/admin/concorsi/" + c + "/matches")
+                .then().statusCode(200).body("size()", is(4));
+
+        // Top-up idempotente: rieseguendo non aggiunge nulla.
+        given().header("Authorization", auth).contentType("application/json").body(dist)
+                .when().post("/admin/concorsi/" + c + "/autofill").then().statusCode(200)
+                .body("added", is(0));
+        given().header("Authorization", auth).get("/admin/concorsi/" + c + "/matches")
+                .then().statusCode(200).body("size()", is(4));
+    }
+
+    @Test
     void concorso_timing_calcolato_dalla_data() {
         String auth = "Bearer " + token();
         // Numeri di turno alti e distinti per non collidere con gli altri test.
