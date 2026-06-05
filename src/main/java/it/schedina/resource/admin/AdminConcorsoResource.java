@@ -218,15 +218,6 @@ public class AdminConcorsoResource {
         Concorso c = Concorso.findById(id);
         if (c == null) throw new NotFoundException();
 
-        java.util.LinkedHashMap<String, Integer> dist = new java.util.LinkedHashMap<>();
-        if (distribution != null && !distribution.isEmpty()) {
-            dist.putAll(distribution);
-        } else {
-            dist.put("Serie A", 5);
-            dist.put("Serie B", 5);
-            dist.put("Serie C", 3);
-        }
-
         List<Long> giornateIds = Giornata.findByNumber(c.number).stream().map(g -> g.id).toList();
         List<Match> available = giornateIds.isEmpty() ? List.of()
                 : Match.<Match>find("giornataId in ?1 and concorsoId is null order by scheduledAt, id", giornateIds).list();
@@ -235,6 +226,20 @@ public class AdminConcorsoResource {
         // Squadre da deprioritizzare: le combinazioni che le contengono si usano solo se necessario.
         java.util.Set<Long> excludedTeams = Team.<Team>find("autofillExcluded", true).list()
                 .stream().map(t -> t.id).collect(java.util.stream.Collectors.toSet());
+
+        // Distribuzione: esplicita (fissa) oppure DEFAULT ADATTIVA. Base 5-5-3; la Serie C prende solo
+        // partite "pulite" (senza squadre escluse) e ogni posto mancante viene travasato sulla Serie B
+        // (5-5-3 → 5-6-2 → 5-7-1 …), così in Serie C non entrano partite con squadre escluse.
+        java.util.LinkedHashMap<String, Integer> dist = new java.util.LinkedHashMap<>();
+        if (distribution != null && !distribution.isEmpty()) {
+            dist.putAll(distribution);
+        } else {
+            int cTarget = Math.min(3, seriesCapacity(available, selected, excludedTeams, "Serie C"));
+            int moved = 3 - cTarget;
+            dist.put("Serie A", 5);
+            dist.put("Serie B", 5 + moved);
+            dist.put("Serie C", cTarget);
+        }
 
         List<Map<String, Object>> detail = new ArrayList<>();
         int totalAdded = 0;
@@ -266,6 +271,18 @@ public class AdminConcorsoResource {
                     "added", added, "shortfall", Math.max(0, need - added)));
         }
         return Response.ok(Map.of("added", totalAdded, "detail", detail)).build();
+    }
+
+    /** Quante partite "pulite" (senza squadre escluse) può avere una lega: già selezionate + disponibili pulite. */
+    private int seriesCapacity(List<Match> available, List<Match> selected,
+            java.util.Set<Long> excluded, String leagueName) {
+        League lg = League.find("name", leagueName).firstResult();
+        if (lg == null) return 0;
+        Long lid = lg.id;
+        long sel = selected.stream().filter(m -> lid.equals(m.leagueId)).count();
+        long cleanAvail = available.stream().filter(m -> lid.equals(m.leagueId)
+                && !excluded.contains(m.homeTeamId) && !excluded.contains(m.awayTeamId)).count();
+        return (int) (sel + cleanAvail);
     }
 
     // ----- Stato -----

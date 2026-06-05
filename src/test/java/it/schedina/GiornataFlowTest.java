@@ -429,6 +429,55 @@ class GiornataFlowTest {
     }
 
     @Test
+    void concorso_autofill_adattivo_553_diventa_562() {
+        String auth = "Bearer " + token();
+        long nano = System.nanoTime();
+        int turno = 300000 + (int) (nano % 600000);
+
+        // Leghe con i nomi reali usati dal default adattivo.
+        long lA = post(auth, "/admin/leagues", "{\"name\":\"Serie A\"}", 201);
+        long lB = post(auth, "/admin/leagues", "{\"name\":\"Serie B\"}", 201);
+        long lC = post(auth, "/admin/leagues", "{\"name\":\"Serie C\"}", 201);
+
+        long gA = post(auth, "/admin/giornate", "{\"leagueId\":" + lA + ",\"name\":\"gA\",\"number\":" + turno + "}", 201);
+        long gB = post(auth, "/admin/giornate", "{\"leagueId\":" + lB + ",\"name\":\"gB\",\"number\":" + turno + "}", 201);
+        long gC = post(auth, "/admin/giornate", "{\"leagueId\":" + lC + ",\"name\":\"gC\",\"number\":" + turno + "}", 201);
+
+        long a1 = post(auth, "/admin/teams", "{\"name\":\"a1-" + nano + "\",\"leagueId\":" + lA + "}", 201);
+        long a2 = post(auth, "/admin/teams", "{\"name\":\"a2-" + nano + "\",\"leagueId\":" + lA + "}", 201);
+        long b1 = post(auth, "/admin/teams", "{\"name\":\"b1-" + nano + "\",\"leagueId\":" + lB + "}", 201);
+        long b2 = post(auth, "/admin/teams", "{\"name\":\"b2-" + nano + "\",\"leagueId\":" + lB + "}", 201);
+        long c1 = post(auth, "/admin/teams", "{\"name\":\"c1-" + nano + "\",\"leagueId\":" + lC + "}", 201);
+        long c2 = post(auth, "/admin/teams", "{\"name\":\"c2-" + nano + "\",\"leagueId\":" + lC + "}", 201);
+        long cx = post(auth, "/admin/teams", "{\"name\":\"cx-" + nano + "\",\"leagueId\":" + lC + ",\"autofillExcluded\":true}", 201);
+
+        // 5 A pulite, 6 B pulite, 2 C pulite + 1 C "sporca" (con cx).
+        for (int i = 0; i < 5; i++) mk(auth, a1, a2, gA);
+        for (int i = 0; i < 6; i++) mk(auth, b1, b2, gB);
+        mk(auth, c1, c2, gC);
+        mk(auth, c1, c2, gC);
+        long cDirty = mk(auth, c1, cx, gC);
+
+        long c = post(auth, "/admin/concorsi", "{\"name\":\"AD\",\"number\":" + turno + ",\"closeAt\":\"2999-12-31T20:30:00\"}", 201);
+
+        // Default adattivo (body vuoto): C ha solo 2 pulite → 5-6-2, totale 13, niente partite sporche.
+        given().header("Authorization", auth).contentType("application/json").body("{}")
+                .when().post("/admin/concorsi/" + c + "/autofill").then().statusCode(200).body("added", is(13));
+        given().header("Authorization", auth).get("/admin/concorsi/" + c + "/matches").then().statusCode(200)
+                .body("size()", is(13))
+                .body("findAll { it.leagueId == " + lA + " }.size()", is(5))
+                .body("findAll { it.leagueId == " + lB + " }.size()", is(6))
+                .body("findAll { it.leagueId == " + lC + " }.size()", is(2))
+                .body("findAll { it.id == " + cDirty + " }.size()", is(0));
+    }
+
+    /** Crea una partita (turno via giornata) e ne ritorna l'id. */
+    private long mk(String auth, long home, long away, long giornataId) {
+        return post(auth, "/admin/matches", "{\"homeTeamId\":" + home + ",\"awayTeamId\":" + away
+                + ",\"giornataId\":" + giornataId + ",\"scheduledAt\":\"2999-01-01T20:45:00\"}", 201);
+    }
+
+    @Test
     void concorso_autofill_deprioritizza_squadre_escluse() {
         String auth = "Bearer " + token();
         long nano = System.nanoTime();
