@@ -50,6 +50,7 @@ public class AdminTeamResource {
         t.shortName = req.shortName();
         t.leagueId = req.leagueId();
         if (req.isActive() != null) t.isActive = req.isActive();
+        if (req.autofillExcluded() != null) t.autofillExcluded = req.autofillExcluded();
         t.persist();
         return Response.status(201).entity(TeamDto.TeamResponse.from(t)).build();
     }
@@ -78,6 +79,7 @@ public class AdminTeamResource {
         if (req.shortName() != null) t.shortName = req.shortName();
         if (req.leagueId() != null) t.leagueId = req.leagueId();
         if (req.isActive() != null) t.isActive = req.isActive();
+        if (req.autofillExcluded() != null) t.autofillExcluded = req.autofillExcluded();
         t.persist();
         return TeamDto.TeamResponse.from(t);
     }

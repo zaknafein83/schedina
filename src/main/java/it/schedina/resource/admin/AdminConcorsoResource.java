@@ -232,6 +232,10 @@ public class AdminConcorsoResource {
                 : Match.<Match>find("giornataId in ?1 and concorsoId is null order by scheduledAt, id", giornateIds).list();
         List<Match> selected = Match.findByConcorso(c.id);
 
+        // Squadre da deprioritizzare: le combinazioni che le contengono si usano solo se necessario.
+        java.util.Set<Long> excludedTeams = Team.<Team>find("autofillExcluded", true).list()
+                .stream().map(t -> t.id).collect(java.util.stream.Collectors.toSet());
+
         List<Map<String, Object>> detail = new ArrayList<>();
         int totalAdded = 0;
         for (var e : dist.entrySet()) {
@@ -242,14 +246,19 @@ public class AdminConcorsoResource {
             long already = lid == null ? 0 : selected.stream().filter(m -> lid.equals(m.leagueId)).count();
             int need = (int) Math.max(0, target - already);
             int added = 0;
-            if (lid != null) {
-                for (Match m : available) {
+            if (lid != null && need > 0) {
+                List<Match> leagueMatches = available.stream()
+                        .filter(m -> lid.equals(m.leagueId) && m.concorsoId == null).toList();
+                // Priorità: combinazioni senza squadre escluse, poi le altre (entrambe in ordine di calendario).
+                List<Match> ordered = new ArrayList<>(leagueMatches.stream()
+                        .filter(m -> !excludedTeams.contains(m.homeTeamId) && !excludedTeams.contains(m.awayTeamId)).toList());
+                ordered.addAll(leagueMatches.stream()
+                        .filter(m -> excludedTeams.contains(m.homeTeamId) || excludedTeams.contains(m.awayTeamId)).toList());
+                for (Match m : ordered) {
                     if (added >= need) break;
-                    if (lid.equals(m.leagueId) && m.concorsoId == null) {
-                        m.concorsoId = c.id;
-                        m.persist();
-                        added++;
-                    }
+                    m.concorsoId = c.id;
+                    m.persist();
+                    added++;
                 }
             }
             totalAdded += added;

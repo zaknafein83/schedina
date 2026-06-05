@@ -12,12 +12,14 @@ public final class TeamDto {
             @NotBlank String name,
             String shortName,
             @NotNull Long leagueId,
-            Boolean isActive
+            Boolean isActive,
+            Boolean autofillExcluded
     ) {}
 
-    public record TeamResponse(Long id, String name, String shortName, Long leagueId, boolean isActive) {
+    public record TeamResponse(Long id, String name, String shortName, Long leagueId, boolean isActive,
+            boolean autofillExcluded) {
         public static TeamResponse from(Team t) {
-            return new TeamResponse(t.id, t.name, t.shortName, t.leagueId, t.isActive);
+            return new TeamResponse(t.id, t.name, t.shortName, t.leagueId, t.isActive, t.autofillExcluded);
         }
     }
 }
