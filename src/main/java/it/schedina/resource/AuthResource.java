@@ -29,11 +29,16 @@ public class AuthResource {
     @Path("/register")
     @Transactional
     public Response register(@Valid AuthDto.RegisterRequest req) {
-        if (User.findByEmail(req.email()).isPresent()) {
+        String email = User.normalizeEmail(req.email());
+        if (User.findByEmail(email).isPresent()) {
             return Response.status(400).entity(Map.of("error", "Email già registrata")).build();
         }
+        if (req.username() != null && !req.username().isBlank()
+                && User.find("username", req.username()).firstResultOptional().isPresent()) {
+            return Response.status(400).entity(Map.of("error", "Username già in uso")).build();
+        }
         User user = new User();
-        user.email = req.email();
+        user.email = email;
         user.username = req.username();
         user.hashedPassword = authService.hashPassword(req.password());
         user.firstName = req.firstName();
@@ -46,7 +51,7 @@ public class AuthResource {
     @Path("/login")
     @Transactional
     public Response login(@Valid AuthDto.LoginRequest req) {
-        User user = User.findByEmail(req.email()).orElse(null);
+        User user = User.findByEmail(User.normalizeEmail(req.email())).orElse(null);
         if (user == null || !authService.checkPassword(req.password(), user.hashedPassword)) {
             return Response.status(401).entity(Map.of("error", "Credenziali non valide")).build();
         }
@@ -69,7 +74,7 @@ public class AuthResource {
     @Path("/forgot-password")
     @Transactional
     public Response forgotPassword(@Valid AuthDto.ForgotPasswordRequest req) {
-        User user = User.findByEmail(req.email()).orElse(null);
+        User user = User.findByEmail(User.normalizeEmail(req.email())).orElse(null);
         if (user == null) {
             // Non rivelare se l'email esiste o meno
             return Response.ok(Map.of("message", "Se l'email è registrata riceverai le istruzioni")).build();
