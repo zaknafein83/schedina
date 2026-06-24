@@ -4,6 +4,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.Optional;
 
 @Entity
@@ -46,6 +47,11 @@ public class User extends PanacheEntityBase {
 
     @Column(name = "reset_token_expires_at")
     public LocalDateTime resetTokenExpiresAt;
+
+    /** Normalizza un'email per confronto/archiviazione: trim + minuscolo (ASCII-safe). */
+    public static String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
 
     public static Optional<User> findByEmail(String email) {
         return find("email", email).firstResultOptional();
